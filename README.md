@@ -1,23 +1,25 @@
-# Voxia — site inicial
+# Voxia
 
-Protótipo estático em HTML, CSS e JavaScript. Pode ser publicado diretamente no GitHub Pages.
+Site responsivo da plataforma de participação cidadã Voxia. O frontend é exportado como conteúdo estático para o GitHub Pages; autenticação e dados usam Supabase.
 
-## Abrir localmente
+## Desenvolvimento local
 
-Abra `index.html` no navegador. Para testar de modo mais próximo da publicação, use a extensão Live Server no VS Code.
+1. Instale as dependências com `npm ci`.
+2. Copie `.env.local.example` para `.env.local` e preencha `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` com a URL e a chave publicável do projeto Voxia.
+3. Inicie o site com `npm run dev`.
 
-## Publicar no GitHub Pages
+Nunca coloque uma chave `service_role` ou uma chave secreta em variáveis `NEXT_PUBLIC_*`.
 
-1. Crie um repositório no GitHub e envie a pasta `voxia-site`.
-2. Em **Settings > Pages**, escolha **Deploy from a branch**.
-3. Selecione a branch `main` e a pasta `/ (root)`.
-4. Salve e aguarde o endereço público do GitHub Pages.
+## Banco de dados
 
-## Conectar ao Supabase
+O esquema do Supabase está em `supabase/schema.sql`. Ele cria perfis, categorias, propostas, apoios, catálogo de fontes, referências jurídicas, RLS e a função de moderação. O esquema inicial já foi aplicado ao projeto Voxia.
 
-1. Crie um projeto no Supabase.
-2. No **SQL Editor**, execute o conteúdo de `supabase-schema.sql` para cadastrar as fontes iniciais.
-3. Crie as tabelas de perfis, propostas, apoios, comentários e moderação antes de trocar os dados demonstrativos de `app.js` por dados reais.
-4. Adicione a URL do GitHub Pages em **Authentication > URL Configuration** ao configurar login.
+Referências jurídicas aparecem como verificadas somente após conferência em fonte oficial. As cinco fontes iniciais estão cadastradas para revisão.
 
-O protótipo atual não contém chaves, autenticação, banco conectado ou publicação configurada.
+## Autenticação
+
+O site envia um link de acesso por e-mail pelo Supabase Auth. A URL principal e o retorno publicado estão configurados para `https://phyetroa.github.io/VoxIA`.
+
+## Publicação
+
+O workflow `.github/workflows/deploy-pages.yml` compila e publica o site no GitHub Pages a cada envio para `main`. As variáveis públicas `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` ficam nas variáveis do repositório em **Settings > Secrets and variables > Actions > Variables**.

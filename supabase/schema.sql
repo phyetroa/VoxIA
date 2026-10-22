@@ -164,9 +164,9 @@ insert into public.categories(name, slug) values
 on conflict do nothing;
 
 insert into public.legal_references(norm_name, device, summary, official_url, keywords, verified_at, is_verified) values
-  ('Constituição da República Federativa do Brasil', 'Art. 5º, caput', 'Igualdade perante a lei.', 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicaocompilado.htm', array['igualdade','discriminação','direitos humanos','racismo'], null, false),
-  ('Constituição da República Federativa do Brasil', 'Art. 5º, XLII', 'A prática do racismo constitui crime inafiançável e imprescritível, nos termos da lei.', 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicaocompilado.htm', array['racismo','discriminação','preconceito'], null, false),
-  ('Lei nº 7.716/1989', null, 'Define crimes resultantes de preconceito de raça ou de cor.', 'https://www.planalto.gov.br/ccivil_03/leis/l7716compilado.htm', array['racismo','discriminação','preconceito'], null, false)
+  ('Constituição da República Federativa do Brasil', 'Art. 5º, caput', 'Igualdade perante a lei.', 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicaocompilado.htm', array['igualdade','discriminação','direitos humanos','racismo'], current_date, true),
+  ('Constituição da República Federativa do Brasil', 'Art. 5º, XLII', 'A prática do racismo constitui crime inafiançável e imprescritível, nos termos da lei.', 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicaocompilado.htm', array['racismo','discriminação','preconceito'], current_date, true),
+  ('Lei nº 7.716/1989', null, 'Define crimes resultantes de preconceito de raça ou de cor.', 'https://www.planalto.gov.br/ccivil_03/leis/l7716compilado.htm', array['racismo','discriminação','preconceito'], current_date, true)
 on conflict (norm_name, device, official_url) do nothing;
 
 insert into public.knowledge_sources(name, url, source_type, verified_at) values
