@@ -1,0 +1,22 @@
+.auth-page{min-height:100vh;display:grid;place-content:center;gap:24px;padding:40px 20px;background:radial-gradient(circle at 82% 12%,#f7deef,transparent 26%),var(--paper)}
+.auth-page>.brand{justify-self:center}
+.auth-card{width:min(100%,540px);padding:36px;background:var(--white);border:1px solid var(--line);border-radius:22px;box-shadow:0 18px 50px #15233a10}
+.auth-card h1{font-size:clamp(34px,7vw,48px);margin:0 0 14px}
+.auth-card>p{color:var(--muted)}
+.auth-card form{display:grid;gap:10px;margin-top:24px}
+.auth-card label{font-weight:700;font-size:14px;margin-top:8px}
+.auth-card input,.auth-card textarea,.auth-card select{width:100%;padding:12px 14px;border:1px solid #d9dce3;border-radius:10px;background:white;color:var(--ink);font:inherit}
+.auth-card input:focus,.auth-card textarea:focus,.auth-card select:focus{outline:3px solid #7b4dca33;border-color:var(--violet)}
+.auth-card form button{margin-top:12px;border:0;font:inherit;cursor:pointer}
+.button{font:inherit;cursor:pointer}
+.primary:disabled{opacity:.65;cursor:wait}
+.success{padding:12px 14px;border-radius:10px;background:#e7f7ef;color:#176843}
+.form-error{padding:12px 14px;border-radius:10px;background:#fff0f0;color:#9d2525}
+.proposal-form-card{width:min(100%,700px)}
+.proposal-list{display:grid;gap:16px}
+.proposal-card{padding:24px;background:white;border:1px solid var(--line);border-radius:16px}
+.proposal-card h3{margin:6px 0;font-size:22px}
+.proposal-card>p:not(.proposal-meta){color:var(--muted);white-space:pre-wrap}
+.proposal-card small,.proposal-meta{color:var(--muted);font-size:13px}
+.proposal-meta{font-weight:700;color:var(--green)}
+@media(max-width:600px){.auth-card{padding:26px 20px}.auth-page{padding:28px 16px}}
