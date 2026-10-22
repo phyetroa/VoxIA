@@ -12,9 +12,9 @@ Nunca coloque uma chave `service_role` ou uma chave secreta em variáveis `NEXT_
 
 ## Banco de dados
 
-O esquema do Supabase está em `supabase/schema.sql`. Ele cria perfis, categorias, propostas, apoios, comentários, catálogo de fontes, referências jurídicas, RLS e funções seguras para estatísticas e leitura dos comentários públicos. O esquema inicial já foi aplicado ao projeto Voxia.
+O esquema do Supabase está em `supabase/schema.sql`. Ele cria perfis, categorias, propostas, apoios, comentários, catálogo de fontes, referências jurídicas, RLS e funções seguras para publicação e interações. Propostas enviadas pelo formulário são publicadas imediatamente.
 
-Para atualizar um banco existente, execute uma única vez `supabase/migrations/20261022_proposal_interactions.sql` no SQL Editor do Supabase. Apoios são limitados pelo par proposta/usuário no banco; comentários só podem ser enviados em propostas aprovadas.
+Para atualizar um banco existente, execute uma vez as migrações de `supabase/migrations/` no SQL Editor do Supabase, na ordem dos nomes. Apoios são limitados pelo par proposta/usuário no banco; comentários só podem ser enviados em propostas aprovadas.
 
 Referências jurídicas aparecem como verificadas somente após conferência em fonte oficial. As cinco fontes iniciais estão cadastradas para revisão.
 

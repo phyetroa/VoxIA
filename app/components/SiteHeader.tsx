@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "../../lib/supabase/client";
 import UserAvatar from "./UserAvatar";
+import Brand from "./Brand";
 
 export default function SiteHeader() {
   const [user, setUser] = useState<User | null>(null);
@@ -17,7 +18,7 @@ export default function SiteHeader() {
   }, []);
 
   return <header className="topbar">
-    <Link className="brand" href="/"><span>V</span> Voxia</Link>
+    <Brand />
     <nav aria-label="Navegação principal"><a href="/#propostas">Explorar</a><a href="/#como-funciona">Como funciona</a><a href="/#referencias">Referências</a></nav>
     {user ? <Link className="account-link" href="/entrar" aria-label={`Conta de ${user.email ?? "usuário"}`}><UserAvatar user={user}/><span>{user.email}</span></Link> : <Link className="login" href="/entrar">Entrar</Link>}
   </header>;

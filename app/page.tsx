@@ -25,12 +25,17 @@ export default function Home() {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [signedIn, setSignedIn] = useState(false);
+  const [authLoaded, setAuthLoaded] = useState(false);
   const [stats, setStats] = useState<Record<string, { proposal_id: string; support_count: number; comment_count: number }>>({});
 
   useEffect(() => {
     let active = true;
     try {
       const supabase = createClient();
+      supabase.auth.getUser().then(({ data }) => {
+        if (active) { setSignedIn(Boolean(data.user)); setAuthLoaded(true); }
+      });
       supabase.from("proposals").select("id,title,description,government_scope,locality,created_at,categories(name)").eq("status", "approved").order("created_at", { ascending: false }).limit(20)
         .then(async ({ data, error: queryError }) => {
           if (!active) return;
@@ -55,7 +60,7 @@ export default function Home() {
     <main>
       <SiteHeader />
       <section id="inicio" className="hero">
-        <div className="profile-row"><span className="avatar">V</span><div><strong>@voxia</strong><small>Participação cidadã</small></div></div>
+        <div className="profile-row"><span className="avatar"><img src="/VoxIA/voxia-mark.png" alt="" /></span><div><strong>@voxia</strong><small>Participação cidadã</small></div></div>
         <p className="eyebrow">PARTICIPAÇÃO CIDADÃ DIGITAL</p>
         <h1>Ideias que entram no <em>debate público.</em></h1>
         <p>Uma plataforma independente para propor, acompanhar e apoiar mudanças para o Brasil.</p>
@@ -65,10 +70,10 @@ export default function Home() {
         <p className="eyebrow">PROPOSTAS APROVADAS</p><h2>O que está em debate</h2>
         {loading && <p className="notice" role="status">Carregando propostas…</p>}
         {!loading && error && <div className="empty" role="status"><p>{error}</p></div>}
-        {!loading && !error && proposals.length === 0 && <div className="empty"><div className="empty-icon">✦</div><h3>A comunidade ainda está começando.</h3><p>Quando propostas aprovadas forem publicadas, elas aparecerão aqui. Você já pode criar uma conta e enviar uma ideia para moderação.</p><Link className="primary" href="/entrar">Criar conta</Link></div>}
+        {!loading && !error && proposals.length === 0 && <div className="empty"><div className="empty-icon">✦</div><h3>A comunidade ainda está começando.</h3><p>As propostas publicadas aparecerão aqui. {signedIn ? "Você já pode compartilhar uma ideia com a comunidade." : "Crie uma conta para publicar sua ideia e participar."}</p>{authLoaded && (signedIn ? <Link className="primary" href="/propostas/nova">Apresentar proposta</Link> : <Link className="primary" href="/entrar">Criar conta</Link>)}</div>}
         {proposals.length > 0 && <div className="proposal-list">{proposals.map((proposal) => <ProposalCard key={proposal.id} proposal={proposal} initialStats={stats[proposal.id]} />)}</div>}
       </section>
-      <section id="como-funciona" className="steps"><div><p className="eyebrow">SIMPLES E TRANSPARENTE</p><h2>Sua voz tem um caminho.</h2></div><ol><li><strong>01</strong><span><b>Envie</b> uma proposta com problema, solução e referências.</span></li><li><strong>02</strong><span><b>Moderação</b> revisa conteúdo e referências jurídicas sugeridas.</span></li><li><strong>03</strong><span><b>Participe</b> apoiando propostas aprovadas.</span></li></ol></section>
+      <section id="como-funciona" className="steps"><div><p className="eyebrow">SIMPLES E TRANSPARENTE</p><h2>Sua voz tem um caminho.</h2></div><ol><li><strong>01</strong><span><b>Envie</b> uma proposta com problema, solução e referências.</span></li><li><strong>02</strong><span><b>Explore</b> recebe sua proposta assim que você publicar.</span></li><li><strong>03</strong><span><b>Participe</b> comentando, apoiando e compartilhando ideias.</span></li></ol></section>
       <section id="referencias" className="section"><p className="eyebrow">BASE PARA DECIDIR</p><h2>Referências jurídicas iniciais</h2><div className="sources">{legalSources.map((source) => <a key={source.title} href={source.url} target="_blank" rel="noreferrer"><small>FONTE OFICIAL</small><h3>{source.title}</h3><p>{source.detail}</p><span>Acessar fonte ↗</span></a>)}</div><p className="notice">As referências têm caráter informativo e não constituem aconselhamento jurídico individual.</p></section>
       <footer>Voxia é uma plataforma independente de participação cidadã. Não representa órgãos públicos.</footer>
     </main>

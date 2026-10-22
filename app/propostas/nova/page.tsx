@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "../../../lib/supabase/client";
+import Brand from "../../components/Brand";
 
 type Category = { id: number; name: string };
 
@@ -12,6 +13,7 @@ export default function NewProposalPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
+  const [publishedProposalId, setPublishedProposalId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -43,19 +45,19 @@ export default function NewProposalPage() {
       const supabase = createClient();
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) throw new Error("Entre na sua conta antes de enviar uma proposta.");
-      const { error: insertError } = await supabase.from("proposals").insert({
-        author_id: user.id,
-        title: String(form.get("title")),
-        description: String(form.get("description")),
-        category_id: Number(form.get("category_id")),
-        government_scope: String(form.get("government_scope")),
-        locality: String(form.get("locality") || "") || null,
-        problem: String(form.get("problem")),
-        solution: String(form.get("solution")),
-        expected_benefits: String(form.get("expected_benefits") || "") || null
+      const { data: proposalId, error: insertError } = await supabase.rpc("submit_proposal", {
+        p_title: String(form.get("title")),
+        p_description: String(form.get("description")),
+        p_category_id: Number(form.get("category_id")),
+        p_government_scope: String(form.get("government_scope")),
+        p_locality: String(form.get("locality") || "") || null,
+        p_problem: String(form.get("problem")),
+        p_solution: String(form.get("solution")),
+        p_expected_benefits: String(form.get("expected_benefits") || "") || null
       });
       if (insertError) throw insertError;
-      setMessage("Proposta enviada para moderação. Ela só ficará visível após aprovação.");
+      setPublishedProposalId(proposalId as string);
+      setMessage("Proposta publicada! Ela já está disponível na área Explorar.");
       formElement.reset();
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : "Não foi possível enviar a proposta agora.");
@@ -65,9 +67,9 @@ export default function NewProposalPage() {
   }
 
   if (loading) return <main className="auth-page"><p role="status">Carregando…</p></main>;
-  if (!signedIn) return <main className="auth-page"><Link className="brand" href="/"><span>V</span> Voxia</Link><section className="auth-card"><h1>Entre para participar</h1><p>Você precisa entrar para enviar uma proposta.</p><Link className="primary" href="/entrar">Entrar com e-mail</Link></section></main>;
+  if (!signedIn) return <main className="auth-page"><Brand /><section className="auth-card"><h1>Entre para participar</h1><p>Você precisa entrar para enviar uma proposta.</p><Link className="primary" href="/entrar">Entrar com e-mail</Link></section></main>;
 
-  return <main className="auth-page"><Link className="brand" href="/"><span>V</span> Voxia</Link><section className="auth-card proposal-form-card"><p className="eyebrow">NOVA PARTICIPAÇÃO</p><h1>Apresente uma proposta</h1><p>Seu envio ficará pendente até a revisão de um moderador.</p><form onSubmit={handleSubmit}>
+  return <main className="auth-page"><Brand /><section className="auth-card proposal-form-card"><p className="eyebrow">NOVA PARTICIPAÇÃO</p><h1>Apresente uma proposta</h1><p>Após o envio, sua proposta ficará disponível imediatamente na área Explorar.</p><form onSubmit={handleSubmit}>
     <label htmlFor="title">Título</label><input id="title" name="title" minLength={8} maxLength={140} required/>
     <label htmlFor="description">Descrição detalhada</label><textarea id="description" name="description" minLength={30} maxLength={8000} required rows={5}/>
     <label htmlFor="category_id">Categoria</label><select id="category_id" name="category_id" required defaultValue=""><option value="" disabled>Selecione uma categoria</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select>
@@ -75,7 +77,7 @@ export default function NewProposalPage() {
     <label htmlFor="locality">Localidade (opcional)</label><input id="locality" name="locality" maxLength={140} placeholder="Cidade, estado ou região"/>
     <label htmlFor="problem">Qual problema precisa ser resolvido?</label><textarea id="problem" name="problem" minLength={10} maxLength={3000} required rows={3}/>
     <label htmlFor="solution">Qual solução você sugere?</label><textarea id="solution" name="solution" minLength={10} maxLength={3000} required rows={3}/>
-    <label htmlFor="expected_benefits">Benefícios esperados (opcional)</label><textarea id="expected_benefits" name="expected_benefits" rows={3}/>
-    <button className="primary" type="submit" disabled={sending}>{sending ? "Enviando…" : "Enviar para moderação"}</button>
-  </form>{message && <p className="success" role="status">{message}</p>}{error && <p className="form-error" role="alert">{error}</p>}<p className="notice">As referências jurídicas sugeridas são informativas e não substituem orientação jurídica.</p></section></main>;
+    <label htmlFor="expected_benefits">Benefícios esperados (opcional)</label><textarea id="expected_benefits" name="expected_benefits" maxLength={3000} rows={3}/>
+    <button className="primary" type="submit" disabled={sending}>{sending ? "Publicando…" : "Publicar proposta"}</button>
+  </form>{message && <div className="success" role="status"><p>{message}</p>{publishedProposalId && <Link href={`/#proposta-${publishedProposalId}`}>Ver minha proposta em Explorar</Link>}</div>}{error && <p className="form-error" role="alert">{error}</p>}<p className="notice">As publicações são imediatas. Compartilhe apenas informações responsáveis e respeitosas. As referências jurídicas são informativas e não substituem orientação jurídica.</p></section></main>;
 }

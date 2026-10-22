@@ -18,3 +18,7 @@
 .comment-form button{border:0;white-space:nowrap}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:600px){.account-link{max-width:44px}.account-link>span:last-child{display:none}.proposal-actions{gap:2px}.text-action{padding:8px;font-size:13px}.comment-form{align-items:stretch}.comment-form button{padding:8px 12px}}
+.brand{display:inline-flex;align-items:center;gap:7px}
+.brand .brand-symbol{width:38px;height:38px;border-radius:50%;object-fit:cover;background:white}
+.brand .brand-wordmark{display:block;width:84px;height:30px;object-fit:contain}
+.profile-row .avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;background:white}
