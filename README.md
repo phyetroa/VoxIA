@@ -20,7 +20,7 @@ Referências jurídicas aparecem como verificadas somente após conferência em 
 
 ## Autenticação
 
-O site envia um link de acesso por e-mail pelo Supabase Auth. A URL principal e o retorno publicado estão configurados para `https://phyetroa.github.io/VoxIA`.
+O acesso usa e-mail e senha pelo Supabase Auth. Quem já tem senha entra diretamente sem receber um link. Contas antigas criadas por link podem usar “Esqueci minha senha” uma vez para definir a senha; novos cadastros podem exigir confirmação de e-mail conforme as configurações do Supabase.
 
 O avatar é exibido quando o provedor de autenticação fornece `picture` ou `avatar_url`; o login por link de e-mail não fornece automaticamente a foto de perfil do Google. Sem essa informação, a Voxia mostra iniciais do usuário.
 

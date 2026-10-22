@@ -12,6 +12,10 @@
 .primary:disabled{opacity:.65;cursor:wait}
 .success{padding:12px 14px;border-radius:10px;background:#e7f7ef;color:#176843}
 .form-error{padding:12px 14px;border-radius:10px;background:#fff0f0;color:#9d2525}
+.auth-options,.auth-back{margin-top:18px}
+.auth-options p{color:var(--muted)}
+.auth-text-button{padding:0;border:0;background:none;color:var(--blue);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
+.auth-options>button{margin-top:6px}
 .proposal-form-card{width:min(100%,700px)}
 .proposal-list{display:grid;gap:16px}
 .proposal-card{padding:24px;background:white;border:1px solid var(--line);border-radius:16px}
