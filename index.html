@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Voxia — propostas que aproximam pessoas e decisões públicas." />
+    <title>Voxia — Voz pública, impacto real</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#inicio" aria-label="Voxia, página inicial"><span>V</span> voxia</a>
+      <nav aria-label="Navegação principal">
+        <a href="#explorar">Explorar</a>
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#referencias">Referências</a>
+      </nav>
+      <div class="header-actions">
+        <button class="theme-button" id="theme-toggle" aria-label="Alterar tema">◐</button>
+        <button class="login-button" data-auth>Entrar</button>
+        <button class="menu-button" aria-label="Abrir menu">☰</button>
+      </div>
+    </header>
+    <nav class="mobile-nav" id="mobile-nav" hidden aria-label="Navegação mobile">
+      <a href="#explorar">Explorar</a><a href="#como-funciona">Como funciona</a><a href="#referencias">Referências</a><button data-auth>Entrar</button>
+    </nav>
+
+    <main id="inicio">
+      <section class="hero">
+        <p class="eyebrow">PARTICIPAÇÃO CÍVICA DIGITAL</p>
+        <h1>Ideias que saem do papel <em>e entram no debate.</em></h1>
+        <p class="hero-copy">Conheça, apoie e acompanhe propostas para transformar a sua cidade, seu estado e o Brasil.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#explorar">Ver propostas <span>↓</span></a>
+          <button class="button secondary" data-create>Compartilhar uma ideia</button>
+        </div>
+        <div class="hero-stats" aria-label="Estatísticas da comunidade">
+          <div><strong>12.480</strong><span>vozes ativas</span></div>
+          <div><strong>386</strong><span>propostas abertas</span></div>
+          <div><strong>27</strong><span>em andamento</span></div>
+        </div>
+      </section>
+
+      <section class="feed-section" id="explorar">
+        <div class="section-heading">
+          <div><p class="eyebrow">EM DESTAQUE</p><h2>O que está movendo o país</h2></div>
+          <button class="filter-button" id="filter-button">Todos os temas <span>⌄</span></button>
+        </div>
+        <div class="filters" id="filters" hidden>
+          <button class="active" data-filter="all">Todas</button>
+          <button data-filter="Nacional">Nacional</button>
+          <button data-filter="Estadual">Estadual</button>
+          <button data-filter="Municipal">Municipal</button>
+        </div>
+        <div class="proposal-grid" id="proposal-grid"></div>
+      </section>
+
+      <section class="how-it-works" id="como-funciona">
+        <div><p class="eyebrow">SIMPLES E TRANSPARENTE</p><h2>Sua voz tem um caminho.</h2></div>
+        <ol>
+          <li><span>01</span><div><h3>Compartilhe</h3><p>Apresente uma proposta clara, com contexto e impacto esperado.</p></div></li>
+          <li><span>02</span><div><h3>Conecte</h3><p>Receba apoios e comentários de pessoas que acreditam na ideia.</p></div></li>
+          <li><span>03</span><div><h3>Avance</h3><p>Propostas relevantes seguem para análise e acompanhamento público.</p></div></li>
+        </ol>
+      </section>
+
+      <section class="references" id="referencias">
+        <div class="section-heading"><div><p class="eyebrow">BASE PARA DECIDIR</p><h2>Referências para propostas melhores</h2></div><a href="#" class="text-link">Ver todas →</a></div>
+        <div class="reference-list" id="reference-list"></div>
+      </section>
+    </main>
+
+    <footer><a class="brand" href="#inicio"><span>V</span> voxia</a><p>Uma plataforma para diálogo, ideias e participação.</p><p>© 2026 Voxia</p></footer>
+    <dialog id="auth-dialog"><button class="close-dialog" aria-label="Fechar">×</button><p class="eyebrow">BEM-VINDO À VOXIA</p><h2>Entre para participar.</h2><p>Você pode ler as propostas livremente. Para apoiar, comentar ou enviar uma ideia, crie uma conta.</p><form id="demo-login-form"><label>Seu nome<input id="display-name" required maxlength="40" placeholder="Como quer ser chamado?" /></label><button class="button primary full" type="submit">Continuar</button></form><small>Modo de demonstração: seu acesso fica salvo neste navegador.</small></dialog>
+    <dialog id="proposal-dialog"><button class="close-proposal" aria-label="Fechar">×</button><p class="eyebrow">NOVA PROPOSTA</p><h2>Qual mudança você quer ver?</h2><form id="proposal-form"><label>Título<input id="proposal-title" required maxlength="90" placeholder="Ex.: Mais árvores nas praças" /></label><label>Escala<select id="proposal-area"><option>Municipal</option><option>Estadual</option><option>Nacional</option></select></label><label>Explique a ideia<textarea id="proposal-text" required maxlength="280" placeholder="Descreva o problema e a sua proposta."></textarea></label><button class="button primary full" type="submit">Enviar para moderação</button></form><small>A proposta será salva como pendente nesta demonstração.</small></dialog>
+    <dialog id="comments-dialog"><button class="close-comments" aria-label="Fechar">×</button><p class="eyebrow">CONVERSA</p><h2 id="comments-title">Comentários</h2><div id="comments-list" class="comments-list"></div><form id="comment-form"><label>Seu comentário<textarea id="comment-text" required maxlength="280" placeholder="Contribua com respeito e clareza."></textarea></label><button class="button primary full" type="submit">Publicar comentário</button></form></dialog>
+    <script src="app.js"></script>
+  </body>
+</html>
