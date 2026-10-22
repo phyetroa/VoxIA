@@ -45,6 +45,16 @@ create table public.proposal_supports (
   primary key(proposal_id, profile_id)
 );
 
+create table public.proposal_comments (
+  id bigint generated always as identity primary key,
+  proposal_id uuid not null references public.proposals(id) on delete cascade,
+  author_id uuid not null references public.profiles(id) on delete cascade,
+  body text not null check (char_length(btrim(body)) between 2 and 1000),
+  is_hidden boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index proposal_comments_visible on public.proposal_comments(proposal_id, created_at) where is_hidden = false;
+
 create table public.legal_references (
   id bigint generated always as identity primary key,
   norm_name text not null,
@@ -89,6 +99,7 @@ alter table public.profiles enable row level security;
 alter table public.categories enable row level security;
 alter table public.proposals enable row level security;
 alter table public.proposal_supports enable row level security;
+alter table public.proposal_comments enable row level security;
 alter table public.legal_references enable row level security;
 alter table public.knowledge_sources enable row level security;
 alter table public.proposal_legal_references enable row level security;
@@ -100,6 +111,8 @@ grant select on public.proposals to anon, authenticated;
 grant select, insert, update on public.profiles to authenticated;
 grant insert, update on public.proposals to authenticated;
 grant select, insert, delete on public.proposal_supports to authenticated;
+grant insert, delete on public.proposal_comments to authenticated;
+grant usage, select on sequence public.proposal_comments_id_seq to authenticated;
 grant select on public.moderation_history to authenticated;
 
 create function public.is_moderator()
@@ -134,6 +147,8 @@ create policy "public reads approved proposal references" on public.proposal_leg
 create policy "users read own supports" on public.proposal_supports for select using (auth.uid() = profile_id);
 create policy "users support approved proposals" on public.proposal_supports for insert with check (auth.uid() = profile_id and exists (select 1 from public.proposals where id = proposal_id and status = 'approved'));
 create policy "users remove own support" on public.proposal_supports for delete using (auth.uid() = profile_id);
+create policy "users comment on approved proposals" on public.proposal_comments for insert to authenticated with check (auth.uid() = author_id and exists (select 1 from public.proposals where id = proposal_id and status = 'approved'));
+create policy "authors delete own comments" on public.proposal_comments for delete to authenticated using (auth.uid() = author_id);
 create policy "moderators read history" on public.moderation_history for select using (public.is_moderator());
 
 create function public.moderate_proposal(proposal uuid, next_state public.moderation_status, reason text default null)
@@ -153,6 +168,32 @@ $$;
 
 revoke all on function public.moderate_proposal(uuid, public.moderation_status, text) from public;
 grant execute on function public.moderate_proposal(uuid, public.moderation_status, text) to authenticated;
+
+create function public.get_proposal_stats()
+returns table(proposal_id uuid, support_count bigint, comment_count bigint)
+language sql stable security definer set search_path = public
+as $$
+  select p.id,
+    (select count(*) from public.proposal_supports s where s.proposal_id = p.id),
+    (select count(*) from public.proposal_comments c where c.proposal_id = p.id and c.is_hidden = false)
+  from public.proposals p where p.status = 'approved';
+$$;
+
+create function public.get_proposal_comments(proposal uuid)
+returns table(id bigint, body text, created_at timestamptz, display_name text)
+language sql stable security definer set search_path = public
+as $$
+  select c.id, c.body, c.created_at, p.display_name
+  from public.proposal_comments c
+  join public.profiles p on p.id = c.author_id
+  join public.proposals proposal_row on proposal_row.id = c.proposal_id
+  where c.proposal_id = $1 and c.is_hidden = false and proposal_row.status = 'approved'
+  order by c.created_at asc limit 200;
+$$;
+revoke all on function public.get_proposal_stats() from public;
+revoke all on function public.get_proposal_comments(uuid) from public;
+grant execute on function public.get_proposal_stats() to anon, authenticated;
+grant execute on function public.get_proposal_comments(uuid) to anon, authenticated;
 
 insert into public.categories(name, slug) values
   ('Educação','educacao'), ('Saúde','saude'), ('Segurança pública','seguranca-publica'),

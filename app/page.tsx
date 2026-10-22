@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "../lib/supabase/client";
+import SiteHeader from "./components/SiteHeader";
+import ProposalCard from "./components/ProposalCard";
 
 type Proposal = {
   id: string;
@@ -19,22 +21,27 @@ const legalSources = [
   { title: "Lei nº 7.716/1989", detail: "Crimes resultantes de preconceito de raça ou de cor.", url: "https://www.planalto.gov.br/ccivil_03/leis/l7716compilado.htm" }
 ];
 
-const scopes: Record<string, string> = { municipal: "Municipal", state: "Estadual", federal: "Federal" };
-
 export default function Home() {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [stats, setStats] = useState<Record<string, { proposal_id: string; support_count: number; comment_count: number }>>({});
 
   useEffect(() => {
     let active = true;
     try {
       const supabase = createClient();
       supabase.from("proposals").select("id,title,description,government_scope,locality,created_at,categories(name)").eq("status", "approved").order("created_at", { ascending: false }).limit(20)
-        .then(({ data, error: queryError }) => {
+        .then(async ({ data, error: queryError }) => {
           if (!active) return;
           if (queryError) setError("Não foi possível carregar as propostas agora.");
-          else setProposals((data ?? []) as Proposal[]);
+          else {
+            setProposals((data ?? []) as Proposal[]);
+            if (data?.length) {
+              const { data: statsData } = await supabase.rpc("get_proposal_stats");
+              if (active) setStats(Object.fromEntries(((statsData ?? []) as { proposal_id: string; support_count: number; comment_count: number }[]).map((item) => [item.proposal_id, item])));
+            }
+          }
           setLoading(false);
         });
     } catch {
@@ -46,11 +53,7 @@ export default function Home() {
 
   return (
     <main>
-      <header className="topbar">
-        <Link className="brand" href="/"><span>V</span> Voxia</Link>
-        <nav aria-label="Navegação principal"><a href="#propostas">Explorar</a><a href="#como-funciona">Como funciona</a><a href="#referencias">Referências</a></nav>
-        <Link className="login" href="/entrar">Entrar</Link>
-      </header>
+      <SiteHeader />
       <section id="inicio" className="hero">
         <div className="profile-row"><span className="avatar">V</span><div><strong>@voxia</strong><small>Participação cidadã</small></div></div>
         <p className="eyebrow">PARTICIPAÇÃO CIDADÃ DIGITAL</p>
@@ -63,7 +66,7 @@ export default function Home() {
         {loading && <p className="notice" role="status">Carregando propostas…</p>}
         {!loading && error && <div className="empty" role="status"><p>{error}</p></div>}
         {!loading && !error && proposals.length === 0 && <div className="empty"><div className="empty-icon">✦</div><h3>A comunidade ainda está começando.</h3><p>Quando propostas aprovadas forem publicadas, elas aparecerão aqui. Você já pode criar uma conta e enviar uma ideia para moderação.</p><Link className="primary" href="/entrar">Criar conta</Link></div>}
-        {proposals.length > 0 && <div className="proposal-list">{proposals.map((proposal) => <article className="proposal-card" key={proposal.id}><p className="proposal-meta">{(Array.isArray(proposal.categories) ? proposal.categories[0]?.name : proposal.categories?.name) ?? "Cidadania"} · {scopes[proposal.government_scope] ?? "Brasil"}{proposal.locality ? ` · ${proposal.locality}` : ""}</p><h3>{proposal.title}</h3><p>{proposal.description}</p><small>{new Date(proposal.created_at).toLocaleDateString("pt-BR")}</small></article>)}</div>}
+        {proposals.length > 0 && <div className="proposal-list">{proposals.map((proposal) => <ProposalCard key={proposal.id} proposal={proposal} initialStats={stats[proposal.id]} />)}</div>}
       </section>
       <section id="como-funciona" className="steps"><div><p className="eyebrow">SIMPLES E TRANSPARENTE</p><h2>Sua voz tem um caminho.</h2></div><ol><li><strong>01</strong><span><b>Envie</b> uma proposta com problema, solução e referências.</span></li><li><strong>02</strong><span><b>Moderação</b> revisa conteúdo e referências jurídicas sugeridas.</span></li><li><strong>03</strong><span><b>Participe</b> apoiando propostas aprovadas.</span></li></ol></section>
       <section id="referencias" className="section"><p className="eyebrow">BASE PARA DECIDIR</p><h2>Referências jurídicas iniciais</h2><div className="sources">{legalSources.map((source) => <a key={source.title} href={source.url} target="_blank" rel="noreferrer"><small>FONTE OFICIAL</small><h3>{source.title}</h3><p>{source.detail}</p><span>Acessar fonte ↗</span></a>)}</div><p className="notice">As referências têm caráter informativo e não constituem aconselhamento jurídico individual.</p></section>
