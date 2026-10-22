@@ -17,21 +17,30 @@ export default function SignInPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [signupPendingConfirmation, setSignupPendingConfirmation] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
+    let active = true;
     try {
       const supabase = createClient();
       if (new URLSearchParams(window.location.search).has("passwordRecovery")) setMode("update-password");
-      supabase.auth.getUser().then(({ data }) => setUser(data.user));
+      supabase.auth.getUser().then(({ data }) => {
+        if (active) setUser(data.user);
+      }).catch(() => {
+        if (active) setError("Não foi possível verificar sua sessão. Atualize a página e tente novamente.");
+      });
       const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+        if (!active) return;
         setUser(session?.user ?? null);
         if (event === "PASSWORD_RECOVERY") setMode("update-password");
       });
-      return () => listener.subscription.unsubscribe();
+      return () => {
+        active = false;
+        listener.subscription.unsubscribe();
+      };
     } catch {
-      setError("O acesso ainda não está configurado nesta versão do site.");
+      setError("O acesso ao Supabase ainda não está configurado.");
+      return () => { active = false; };
     }
   }, []);
 
@@ -40,32 +49,41 @@ export default function SignInPage() {
     setLoading(true);
     setError("");
     setMessage("");
+
     try {
       const supabase = createClient();
+      const normalizedEmail = email.trim().toLowerCase();
+
       if (mode === "login") {
-        const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
-        if (authError) throw authError;
-        setUser(data.user);
-        setMessage("Login realizado. Você já pode participar da Voxia.");
-      } else if (mode === "signup") {
-        setSignupPendingConfirmation(false);
-        const { data, error: authError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.href.split("?")[0] }
+        const { data, error: authError } = await supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password
         });
         if (authError) throw authError;
-        if (data.session) setUser(data.user);
-        else {
-          setSignupPendingConfirmation(true);
-          setMessage("Se o cadastro puder ser concluído, enviaremos uma confirmação para seu e-mail. Confira também a pasta de spam.");
+        setUser(data.user);
+        setMessage("Você entrou na Voxia. Sua sessão está ativa.");
+      } else if (mode === "signup") {
+        if (password.length < 8) throw new Error("Use uma senha com pelo menos 8 caracteres.");
+        const { data, error: authError } = await supabase.auth.signUp({
+          email: normalizedEmail,
+          password
+        });
+        if (authError) throw authError;
+
+        if (!data.session || !data.user) {
+          setUser(null);
+          setMessage("Não foi possível iniciar sua sessão. Se você já tem uma conta, entre ou recupere sua senha.");
+          return;
         }
+
+        setUser(data.user);
+        setMessage("Conta criada. Você já está conectado e pode participar da Voxia.");
       } else if (mode === "recovery") {
-        const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
+        const { error: authError } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
           redirectTo: `${window.location.origin}${window.location.pathname}?passwordRecovery=true`
         });
         if (authError) throw authError;
-        setMessage("Se houver uma conta para esse e-mail, enviaremos as instruções para redefinir a senha.");
+        setMessage("Se houver uma conta para esse e-mail, enviaremos as instruções de recuperação.");
       } else {
         if (password.length < 8) throw new Error("Use uma senha com pelo menos 8 caracteres.");
         if (password !== confirmation) throw new Error("As senhas não conferem.");
@@ -74,40 +92,20 @@ export default function SignInPage() {
         setPassword("");
         setConfirmation("");
         setMode("login");
-        setMessage("Senha atualizada. Nos próximos acessos, entre com seu e-mail e senha sem precisar de link.");
+        setMessage("Senha atualizada. Entre com seu e-mail e a nova senha.");
       }
     } catch (cause) {
       const detail = cause instanceof Error ? cause.message : "";
       if (detail.includes("caracteres") || detail.includes("conferem")) setError(detail);
-      else if (/not authorized|smtp/i.test(detail)) setError("O serviço de e-mail do Supabase não está autorizado a enviar para esse endereço. A equipe da Voxia precisa configurar um provedor SMTP próprio.");
-      else if (/rate limit/i.test(detail)) setError("O limite de envio de e-mails foi atingido. Aguarde um pouco e tente novamente.");
-      else setError(mode === "login"
-        ? "E-mail ou senha incorretos. Se sua conta foi criada por link, use “Esqueci minha senha” para cadastrar uma senha."
-        : "Não foi possível concluir. Confira os dados e tente novamente.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function resendSignupConfirmation() {
-    setLoading(true);
-    setError("");
-    setMessage("");
-    try {
-      const { error: resendError } = await createClient().auth.resend({
-        type: "signup",
-        email,
-        options: { emailRedirectTo: window.location.href.split("?")[0] }
-      });
-      if (resendError) throw resendError;
-      setMessage("Se o cadastro puder ser confirmado, enviaremos outro e-mail. Verifique a caixa de entrada e o spam.");
-    } catch (cause) {
-      const detail = cause instanceof Error ? cause.message : "";
-      setError(/not authorized|smtp/i.test(detail)
-        ? "O serviço de e-mail do Supabase não está autorizado a enviar para esse endereço. A equipe da Voxia precisa configurar um provedor SMTP próprio."
-        : /rate limit/i.test(detail)
-          ? "O limite de envio foi atingido. Aguarde antes de tentar novamente."
-          : "Não foi possível reenviar agora. Confira o e-mail e tente mais tarde.");
+      else if (/invalid login credentials/i.test(detail)) setError("E-mail ou senha incorretos. Confira os dados ou recupere sua senha.");
+      else if (/user already registered/i.test(detail)) setError("Este e-mail já possui conta. Use a opção Entrar ou recupere sua senha.");
+      else if (/email not confirmed/i.test(detail)) setError("Esta conta antiga ainda está pendente de confirmação no Supabase. Peça a confirmação ao administrador ou crie uma conta com outro e-mail.");
+      else if (/rate limit|too many requests|over_email_send_rate_limit/i.test(detail)) setError("O serviço limitou temporariamente as tentativas. Aguarde um pouco e tente novamente.");
+      else if (/signup.*disabled|signups not allowed/i.test(detail)) setError("O cadastro está desativado nas configurações de autenticação do Supabase.");
+      else if (/password.*(weak|short|characters)|at least \d+ characters/i.test(detail)) setError("A senha não atende ao mínimo exigido pelo Supabase. Use uma senha mais longa.");
+      else if (/invalid email/i.test(detail)) setError("Confira o formato do e-mail e tente novamente.");
+      else if (/failed to fetch|network|fetch/i.test(detail)) setError("Não foi possível conectar ao Supabase. Verifique sua internet e tente novamente.");
+      else setError(detail ? `O Supabase recusou a operação: ${detail}` : "Não foi possível concluir. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -117,28 +115,71 @@ export default function SignInPage() {
     setMode(nextMode);
     setMessage("");
     setError("");
+    setPassword("");
+    setConfirmation("");
   }
 
   async function handleSignOut() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    setUser(null);
-    setMessage("");
+    setLoading(true);
+    setError("");
+    try {
+      const { error: authError } = await createClient().auth.signOut();
+      if (authError) throw authError;
+      setUser(null);
+      setMessage("Você saiu da sua conta.");
+      setMode("login");
+      setPassword("");
+    } catch {
+      setError("Não foi possível sair agora. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const title = mode === "signup" ? "Crie sua conta" : mode === "recovery" ? "Recupere sua senha" : mode === "update-password" ? "Defina uma senha" : user ? "Você entrou." : "Entre na Voxia";
 
-  return <main className="auth-page"><Brand /><section className="auth-card"><p className="eyebrow">SUA VOZ NO DEBATE</p><h1>{title}</h1>{user && mode !== "update-password" ? <><div className="signed-in-profile"><UserAvatar user={user} size="large"/><div><strong>{user.user_metadata?.name ?? "Sua conta Voxia"}</strong><span>{user.email}</span></div></div><p>Sua sessão está ativa. Agora você pode enviar uma proposta para a comunidade.</p><div className="actions"><Link className="primary" href="/propostas/nova">Apresentar proposta</Link><button className="secondary button" type="button" onClick={handleSignOut}>Sair</button></div></> : <>
-    <p>{mode === "login" ? "Entre com seu e-mail e senha. Quem já tem senha não precisa receber link por e-mail." : mode === "signup" ? "Crie sua conta com e-mail e senha para participar da Voxia." : mode === "recovery" ? "Informe o e-mail da conta para receber instruções de recuperação." : "Escolha uma senha para usar nos próximos acessos sem link por e-mail."}</p>
-    <form onSubmit={handleSubmit}>
-      {mode !== "update-password" && <><label htmlFor="email">E-mail</label><input id="email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="voce@exemplo.com"/> </>}
-      {(mode === "login" || mode === "signup" || mode === "update-password") && <><label htmlFor="password">Senha</label><input id="password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={8} required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Pelo menos 8 caracteres"/></>}
-      {mode === "update-password" && <><label htmlFor="confirmation">Confirme a senha</label><input id="confirmation" type="password" autoComplete="new-password" minLength={8} required value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder="Digite a senha novamente"/></>}
-      <button className="primary" type="submit" disabled={loading}>{loading ? "Aguarde…" : mode === "login" ? "Entrar" : mode === "signup" ? "Criar conta" : mode === "recovery" ? "Enviar instruções" : "Salvar senha"}</button>
-    </form>
-    {mode === "login" && <div className="auth-options"><button type="button" className="auth-text-button" onClick={() => changeMode("recovery")}>Esqueci minha senha</button><p>Primeira vez aqui? <button type="button" className="auth-text-button" onClick={() => changeMode("signup")}>Criar conta</button></p></div>}
-    {mode === "signup" && signupPendingConfirmation && <button type="button" className="auth-text-button" onClick={resendSignupConfirmation} disabled={loading}>{loading ? "Enviando…" : "Reenviar confirmação"}</button>}
-    {(mode === "signup" || mode === "recovery") && <p className="auth-back">Já tem uma senha? <button type="button" className="auth-text-button" onClick={() => changeMode("login")}>Entrar</button></p>}
-    {mode === "login" && <p className="notice">A Voxia não entra em uma conta usando apenas o endereço de e-mail: a senha protege sua identidade. Contas antigas criadas por link podem definir uma senha em “Esqueci minha senha”.</p>}
-  </>}{message && <p className="success" role="status">{message}</p>}{error && <p className="form-error" role="alert">{error}</p>}</section></main>;
+  return <main className="auth-page">
+    <Brand />
+    <section className="auth-card">
+      <p className="eyebrow">SUA VOZ NO DEBATE</p>
+      <h1>{title}</h1>
+      {user && mode !== "update-password" ? <>
+        <div className="signed-in-profile">
+          <UserAvatar user={user} size="large" />
+          <div><strong>{user.user_metadata?.name ?? "Sua conta Voxia"}</strong><span>{user.email}</span></div>
+        </div>
+        <p>Sua sessão está ativa. Agora você pode participar da comunidade.</p>
+        <div className="actions">
+          <Link className="primary" href="/propostas/nova">Apresentar proposta</Link>
+          <button className="secondary button" type="button" onClick={handleSignOut} disabled={loading}>{loading ? "Saindo…" : "Sair"}</button>
+        </div>
+      </> : <>
+        {mode === "login" || mode === "signup" ? <div className="auth-tabs" role="tablist" aria-label="Acesso à Voxia">
+          <button type="button" role="tab" aria-selected={mode === "login"} className={mode === "login" ? "active" : ""} onClick={() => changeMode("login")}>Entrar</button>
+          <button type="button" role="tab" aria-selected={mode === "signup"} className={mode === "signup" ? "active" : ""} onClick={() => changeMode("signup")}>Criar conta</button>
+        </div> : null}
+        <p>{mode === "login" ? "Entre com o e-mail e a senha da sua conta." : mode === "signup" ? "Crie sua conta com e-mail e senha. O acesso é liberado assim que o cadastro for concluído." : mode === "recovery" ? "Informe seu e-mail para receber instruções de recuperação da senha." : "Escolha uma nova senha para sua conta."}</p>
+        <form onSubmit={handleSubmit}>
+          {mode !== "update-password" && <>
+            <label htmlFor="email">E-mail</label>
+            <input id="email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="voce@exemplo.com" />
+          </>}
+          {(mode === "login" || mode === "signup" || mode === "update-password") && <>
+            <label htmlFor="password">Senha</label>
+            <input id="password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={8} required value={password} onChange={(event) => setPassword(event.target.value)} placeholder={mode === "login" ? "Sua senha" : "Pelo menos 8 caracteres"} />
+          </>}
+          {mode === "update-password" && <>
+            <label htmlFor="confirmation">Confirme a nova senha</label>
+            <input id="confirmation" type="password" autoComplete="new-password" minLength={8} required value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder="Digite a senha novamente" />
+          </>}
+          <button className="primary auth-submit" type="submit" disabled={loading}>{loading ? "Aguarde…" : mode === "login" ? "Entrar" : mode === "signup" ? "Criar conta e entrar" : mode === "recovery" ? "Enviar instruções" : "Salvar nova senha"}</button>
+        </form>
+        {mode === "login" && <button type="button" className="auth-text-button recovery-link" onClick={() => changeMode("recovery")}>Esqueci minha senha</button>}
+        {(mode === "recovery" || mode === "update-password") && <p className="auth-back"><button type="button" className="auth-text-button" onClick={() => changeMode("login")}>Voltar para entrar</button></p>}
+        {mode === "login" && <p className="notice">Sua conta é protegida pela senha. Não compartilhe seus dados de acesso.</p>}
+      </>}
+      {message && <p className="success" role="status">{message}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
+    </section>
+  </main>;
 }

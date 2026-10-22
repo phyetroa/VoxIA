@@ -1,0 +1,100 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { createClient } from "../../lib/supabase/client";
+import ProposalCard from "./ProposalCard";
+
+type Proposal = {
+  id: string;
+  title: string;
+  description: string;
+  government_scope: string;
+  locality: string | null;
+  created_at: string;
+  categories: { name: string }[] | { name: string } | null;
+};
+
+type Stats = { proposal_id: string; support_count: number; comment_count: number; is_author: boolean };
+type FeedTab = "for-you" | "popular" | "recent";
+
+function categoryName(proposal: Proposal) {
+  return Array.isArray(proposal.categories) ? proposal.categories[0]?.name : proposal.categories?.name;
+}
+
+export default function ProposalFeed({ mode = "home" }: { mode?: "home" | "explore" }) {
+  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [stats, setStats] = useState<Record<string, Stats>>({});
+  const [categories, setCategories] = useState<string[]>([]);
+  const [tab, setTab] = useState<FeedTab>("for-you");
+  const [search, setSearch] = useState("");
+  const [scope, setScope] = useState("");
+  const [category, setCategory] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    async function loadFeed() {
+      try {
+        const supabase = createClient();
+        const [proposalResult, statsResult, categoryResult] = await Promise.all([
+          supabase.from("proposals").select("id,title,description,government_scope,locality,created_at,categories(name)").eq("status", "approved").order("created_at", { ascending: false }).limit(100),
+          supabase.rpc("get_proposal_stats"),
+          supabase.from("categories").select("name").order("name")
+        ]);
+        if (!active) return;
+        if (proposalResult.error) throw proposalResult.error;
+        setProposals((proposalResult.data ?? []) as Proposal[]);
+        setStats(Object.fromEntries(((statsResult.data ?? []) as Stats[]).map((item) => [item.proposal_id, item])));
+        setCategories(((categoryResult.data ?? []) as { name: string }[]).map((item) => item.name));
+      } catch {
+        if (active) setError("Não foi possível carregar as propostas. Tente novamente em instantes.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    void loadFeed();
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (mode !== "explore") return;
+    const params = new URLSearchParams(window.location.search);
+    const topic = params.get("tema");
+    if (topic) { setSearch(topic.replaceAll("-", " ")); setCategory(topic); }
+  }, [mode]);
+
+  const visibleProposals = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase("pt-BR");
+    return proposals.filter((proposal) => {
+      const text = `${proposal.title} ${proposal.description} ${proposal.locality ?? ""} ${categoryName(proposal) ?? ""}`.toLocaleLowerCase("pt-BR");
+      return (!query || text.includes(query))
+        && (!scope || proposal.government_scope === scope)
+        && (!category || categoryName(proposal) === category);
+    }).sort((first, second) => {
+      if (tab === "popular" || tab === "for-you") {
+        const supportDifference = Number(stats[second.id]?.support_count ?? 0) - Number(stats[first.id]?.support_count ?? 0);
+        if (supportDifference) return supportDifference;
+      }
+      return new Date(second.created_at).getTime() - new Date(first.created_at).getTime();
+    });
+  }, [proposals, stats, search, scope, category, tab]);
+
+  return <section className="feed-section" aria-label={mode === "home" ? "Feed de propostas" : "Explorar propostas"}>
+    {mode === "home" ? <>
+      <div className="feed-title-row"><div><p className="eyebrow">IDEIAS DA COMUNIDADE</p><h2>O que está em debate</h2></div><Link className="quiet-link" href="/explorar">Ver tudo <span aria-hidden="true">→</span></Link></div>
+      <Link className="composer-prompt" href="/propostas/nova"><span className="composer-plus">＋</span><span><strong>Qual ideia você gostaria de compartilhar?</strong><small>Apresente uma proposta ou solução para sua comunidade.</small></span><span className="composer-button">Criar proposta</span></Link>
+    </> : <>
+      <p className="eyebrow">VOZES E SOLUÇÕES</p><h1 className="page-title">Explorar</h1><p className="page-intro">Pesquise ideias por tema, localidade e esfera de governo.</p>
+      <div className="explore-filters"><label className="sr-only" htmlFor="proposal-search">Buscar propostas</label><input id="proposal-search" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar propostas, temas ou localidades"/><label className="sr-only" htmlFor="scope-filter">Filtrar por esfera</label><select id="scope-filter" value={scope} onChange={(event) => setScope(event.target.value)}><option value="">Todas as esferas</option><option value="municipal">Municipal</option><option value="state">Estadual</option><option value="federal">Federal</option></select><label className="sr-only" htmlFor="category-filter">Filtrar por tema</label><select id="category-filter" value={category} onChange={(event) => setCategory(event.target.value)}><option value="">Todos os temas</option>{categories.map((name) => <option key={name} value={name}>{name}</option>)}</select></div>
+    </>}
+    <div className="feed-tabs" role="tablist" aria-label="Ordenar propostas">
+      {([{ id: "for-you", label: "Para você" }, { id: "popular", label: "Populares" }, { id: "recent", label: "Recentes" }] as { id: FeedTab; label: string }[]).map((item) => <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} className={tab === item.id ? "active" : ""} onClick={() => setTab(item.id)}>{item.label}</button>)}
+    </div>
+    {loading && <p className="notice" role="status">Carregando propostas…</p>}
+    {!loading && error && <div className="empty" role="alert"><h3>Não foi possível carregar</h3><p>{error}</p></div>}
+    {!loading && !error && visibleProposals.length === 0 && <div className="empty"><div className="empty-icon">✦</div><h3>{proposals.length ? "Nenhum resultado com esses filtros." : "A conversa está começando."}</h3><p>{proposals.length ? "Altere a busca ou limpe os filtros para ver outras propostas." : "As propostas aprovadas da comunidade vão aparecer aqui."}</p>{mode === "explore" && (search || scope || category) && <button type="button" className="text-action" onClick={() => { setSearch(""); setScope(""); setCategory(""); }}>Limpar filtros</button>}</div>}
+    {!loading && !error && visibleProposals.length > 0 && <div className="proposal-list">{visibleProposals.map((proposal) => <ProposalCard key={proposal.id} proposal={proposal} initialStats={stats[proposal.id]} />)}</div>}
+  </section>;
+}

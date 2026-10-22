@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "../../../lib/supabase/client";
-import Brand from "../../components/Brand";
+import AppShell from "../../components/AppShell";
 
 type Category = { id: number; name: string };
 
@@ -66,10 +66,10 @@ export default function NewProposalPage() {
     }
   }
 
-  if (loading) return <main className="auth-page"><p role="status">Carregando…</p></main>;
-  if (!signedIn) return <main className="auth-page"><Brand /><section className="auth-card"><h1>Entre para participar</h1><p>Você precisa entrar para enviar uma proposta.</p><Link className="primary" href="/entrar">Entrar com e-mail</Link></section></main>;
+  if (loading) return <AppShell showRightPanel={false}><section className="content-page"><p role="status">Carregando…</p></section></AppShell>;
+  if (!signedIn) return <AppShell showRightPanel={false}><section className="content-page"><p className="eyebrow">PARTICIPE DA VOXIA</p><h1 className="page-title">Entre para participar</h1><p className="page-intro">Você precisa entrar para enviar uma proposta.</p><Link className="primary" href="/entrar">Entrar com e-mail</Link></section></AppShell>;
 
-  return <main className="auth-page"><Brand /><section className="auth-card proposal-form-card"><p className="eyebrow">NOVA PARTICIPAÇÃO</p><h1>Apresente uma proposta</h1><p>Após o envio, sua proposta ficará disponível imediatamente na área Explorar.</p><form onSubmit={handleSubmit}>
+  return <AppShell showRightPanel={false}><section className="content-page"><p className="eyebrow">NOVA PARTICIPAÇÃO</p><h1 className="page-title">Apresente uma proposta</h1><p className="page-intro">Após o envio, sua proposta ficará disponível imediatamente na área Explorar.</p><section className="proposal-form-panel"><form onSubmit={handleSubmit}>
     <label htmlFor="title">Título</label><input id="title" name="title" minLength={8} maxLength={140} required/>
     <label htmlFor="description">Descrição detalhada</label><textarea id="description" name="description" minLength={30} maxLength={8000} required rows={5}/>
     <label htmlFor="category_id">Categoria</label><select id="category_id" name="category_id" required defaultValue=""><option value="" disabled>Selecione uma categoria</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select>
@@ -79,5 +79,5 @@ export default function NewProposalPage() {
     <label htmlFor="solution">Qual solução você sugere?</label><textarea id="solution" name="solution" minLength={10} maxLength={3000} required rows={3}/>
     <label htmlFor="expected_benefits">Benefícios esperados (opcional)</label><textarea id="expected_benefits" name="expected_benefits" maxLength={3000} rows={3}/>
     <button className="primary" type="submit" disabled={sending}>{sending ? "Publicando…" : "Publicar proposta"}</button>
-  </form>{message && <div className="success" role="status"><p>{message}</p>{publishedProposalId && <Link href={`/#proposta-${publishedProposalId}`}>Ver minha proposta em Explorar</Link>}</div>}{error && <p className="form-error" role="alert">{error}</p>}<p className="notice">As publicações são imediatas. Compartilhe apenas informações responsáveis e respeitosas. As referências jurídicas são informativas e não substituem orientação jurídica.</p></section></main>;
+  </form>{message && <div className="success" role="status"><p>{message}</p>{publishedProposalId && <Link href={`/explorar#proposta-${publishedProposalId}`}>Ver minha proposta em Explorar</Link>}</div>}{error && <p className="form-error" role="alert">{error}</p>}<p className="notice">As publicações são imediatas. Compartilhe apenas informações responsáveis e respeitosas. As referências jurídicas são informativas e não substituem orientação jurídica.</p></section></section></AppShell>;
 }

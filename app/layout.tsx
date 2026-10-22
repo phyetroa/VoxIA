@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./forms.css";
 import "./interactions.css";
+import "./social.css";
+import { ThemeProvider } from "./components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Voxia — Participação cidadã",
@@ -9,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="pt-BR"><body>{children}</body></html>;
+  return <html lang="pt-BR"><body><ThemeProvider>{children}</ThemeProvider></body></html>;
 }
