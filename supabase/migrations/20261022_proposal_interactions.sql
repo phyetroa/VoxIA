@@ -25,13 +25,16 @@ create policy "authors delete own comments"
   on public.proposal_comments for delete to authenticated
   using (auth.uid() = author_id);
 
-create or replace function public.get_proposal_stats()
-returns table(proposal_id uuid, support_count bigint, comment_count bigint)
+drop function public.get_proposal_stats();
+
+create function public.get_proposal_stats()
+returns table(proposal_id uuid, support_count bigint, comment_count bigint, is_author boolean)
 language sql stable security definer set search_path = public
 as $$
   select p.id,
     (select count(*) from public.proposal_supports s where s.proposal_id = p.id),
-    (select count(*) from public.proposal_comments c where c.proposal_id = p.id and c.is_hidden = false)
+    (select count(*) from public.proposal_comments c where c.proposal_id = p.id and c.is_hidden = false),
+    (p.author_id = auth.uid())
   from public.proposals p
   where p.status = 'approved';
 $$;

@@ -27,7 +27,7 @@ export default function Home() {
   const [error, setError] = useState("");
   const [signedIn, setSignedIn] = useState(false);
   const [authLoaded, setAuthLoaded] = useState(false);
-  const [stats, setStats] = useState<Record<string, { proposal_id: string; support_count: number; comment_count: number }>>({});
+  const [stats, setStats] = useState<Record<string, { proposal_id: string; support_count: number; comment_count: number; is_author: boolean }>>({});
 
   useEffect(() => {
     let active = true;
@@ -44,7 +44,7 @@ export default function Home() {
             setProposals((data ?? []) as Proposal[]);
             if (data?.length) {
               const { data: statsData } = await supabase.rpc("get_proposal_stats");
-              if (active) setStats(Object.fromEntries(((statsData ?? []) as { proposal_id: string; support_count: number; comment_count: number }[]).map((item) => [item.proposal_id, item])));
+              if (active) setStats(Object.fromEntries(((statsData ?? []) as { proposal_id: string; support_count: number; comment_count: number; is_author: boolean }[]).map((item) => [item.proposal_id, item])));
             }
           }
           setLoading(false);

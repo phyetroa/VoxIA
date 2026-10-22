@@ -19,7 +19,7 @@ export default function SiteHeader() {
 
   return <header className="topbar">
     <Brand />
-    <nav aria-label="Navegação principal"><a href="/#propostas">Explorar</a><a href="/#como-funciona">Como funciona</a><a href="/#referencias">Referências</a></nav>
+    <nav aria-label="Navegação principal"><Link href="/#propostas">Explorar</Link><Link href="/#como-funciona">Como funciona</Link><Link href="/rank">Rank</Link><Link href="/#referencias">Referências</Link><a href="https://agenciabrasil.ebc.com.br/" target="_blank" rel="noreferrer">Notícias</a></nav>
     {user ? <Link className="account-link" href="/entrar" aria-label={`Conta de ${user.email ?? "usuário"}`}><UserAvatar user={user}/><span>{user.email}</span></Link> : <Link className="login" href="/entrar">Entrar</Link>}
   </header>;
 }
