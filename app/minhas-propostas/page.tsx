@@ -38,7 +38,7 @@ export default function MyProposalsPage() {
   }, []);
 
   return <AppShell showRightPanel={false}><section className="content-page">
-    <p className="eyebrow">SEU HISTÓRICO</p><h1 className="page-title">Minhas propostas</h1><p className="page-intro">Acompanhe suas publicações e o estado de cada proposta.</p>
+    <p className="eyebrow">Seu histórico</p><h1 className="page-title">Minhas propostas</h1><p className="page-intro">Acompanhe suas publicações e o estado de cada proposta.</p>
     {loading && <p className="notice" role="status">Carregando suas propostas…</p>}
     {!loading && !user && <div className="empty"><h2>Entre para ver seu histórico</h2><Link className="primary" href="/entrar">Entrar</Link></div>}
     {!loading && user && error && <p className="form-error" role="alert">{error}</p>}

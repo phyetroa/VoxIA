@@ -67,9 +67,9 @@ export default function NewProposalPage() {
   }
 
   if (loading) return <AppShell showRightPanel={false}><section className="content-page"><p role="status">Carregando…</p></section></AppShell>;
-  if (!signedIn) return <AppShell showRightPanel={false}><section className="content-page"><p className="eyebrow">PARTICIPE DA VOXIA</p><h1 className="page-title">Entre para participar</h1><p className="page-intro">Você precisa entrar para enviar uma proposta.</p><Link className="primary" href="/entrar">Entrar com e-mail</Link></section></AppShell>;
+  if (!signedIn) return <AppShell showRightPanel={false}><section className="content-page"><p className="eyebrow">Participe da Voxia</p><h1 className="page-title">Entre para participar</h1><p className="page-intro">Você precisa entrar para enviar uma proposta.</p><Link className="primary" href="/entrar">Entrar com e-mail</Link></section></AppShell>;
 
-  return <AppShell showRightPanel={false}><section className="content-page"><p className="eyebrow">NOVA PARTICIPAÇÃO</p><h1 className="page-title">Apresente uma proposta</h1><p className="page-intro">Após o envio, sua proposta ficará disponível imediatamente na área Explorar.</p><section className="proposal-form-panel"><form onSubmit={handleSubmit}>
+  return <AppShell showRightPanel={false}><section className="content-page"><p className="eyebrow">Nova participação</p><h1 className="page-title">Apresente uma proposta</h1><p className="page-intro">Após o envio, sua proposta ficará disponível imediatamente na área Explorar.</p><section className="proposal-form-panel"><form onSubmit={handleSubmit}>
     <label htmlFor="title">Título</label><input id="title" name="title" minLength={8} maxLength={140} required/>
     <label htmlFor="description">Descrição detalhada</label><textarea id="description" name="description" minLength={30} maxLength={8000} required rows={5}/>
     <label htmlFor="category_id">Categoria</label><select id="category_id" name="category_id" required defaultValue=""><option value="" disabled>Selecione uma categoria</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select>

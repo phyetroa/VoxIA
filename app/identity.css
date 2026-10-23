@@ -17,7 +17,7 @@ body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:0}
 .app-columns{padding-top:32px}
 .app-right-panel{padding-top:4px}
 .side-card{border-radius:8px;background:var(--white);box-shadow:none}
-.side-kicker,.eyebrow{font-size:11px;letter-spacing:.07em;text-transform:lowercase}
+.side-kicker,.eyebrow{font-size:11px;letter-spacing:.07em;text-transform:none}
 .side-kicker{font-weight:800}
 .topic-list a{border-radius:4px}
 .home-intro{padding:8px 0 23px}

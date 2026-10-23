@@ -55,7 +55,7 @@ export default function NewsPage() {
   const visibleNews = useMemo(() => region === "Todas" ? news : news.filter((item) => item.region === region), [news, region]);
 
   return <AppShell showRightPanel={false}><section className="content-page news-page">
-    <p className="eyebrow">ACOMPANHE O PAÍS</p>
+    <p className="eyebrow">Acompanhe o país</p>
     <h1 className="page-title">Notícias nacionais</h1>
     <p className="page-intro">Manchetes e imagens de veículos jornalísticos reconhecidos, incluindo G1/Globo e notícias do G1 Pernambuco, com reportagens do NE1 quando publicadas no portal. A Voxia não produz nem endossa o conteúdo jornalístico.</p>
     <div className="news-feed-heading">

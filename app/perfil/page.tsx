@@ -74,7 +74,7 @@ export default function ProfilePage() {
   }
 
   return <AppShell showRightPanel={false}><section className="content-page profile-page">
-    <p className="eyebrow">SUA CONTA</p><h1 className="page-title">Perfil</h1>
+    <p className="eyebrow">Sua conta</p><h1 className="page-title">Perfil</h1>
     {loading && <p className="notice" role="status">Carregando perfil…</p>}
     {!loading && !user && <div className="empty"><h2>Entre para acessar seu perfil</h2><p>Seu perfil e suas propostas são privados para sua conta.</p><Link className="primary" href="/entrar">Entrar ou criar conta</Link></div>}
     {!loading && user && <>

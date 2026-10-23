@@ -46,7 +46,7 @@ export default function SavedProposals() {
   }, [loadSaved]);
 
   return <section className="content-page">
-    <p className="eyebrow">SUA COLEÇÃO</p><h1 className="page-title">Propostas salvas</h1><p className="page-intro">Guarde ideias para reler, comparar e acompanhar. Seus salvos ficam neste navegador.</p>
+    <p className="eyebrow">Sua coleção</p><h1 className="page-title">Propostas salvas</h1><p className="page-intro">Guarde ideias para reler, comparar e acompanhar. Seus salvos ficam neste navegador.</p>
     {loading && <p className="notice" role="status">Carregando propostas salvas…</p>}
     {!loading && error && <div className="empty" role="alert"><p>{error}</p><button type="button" className="text-action" onClick={() => void loadSaved()}>Tentar novamente</button></div>}
     {!loading && !error && proposals.length === 0 && <div className="empty"><h2>Sua coleção começa com uma ideia.</h2><p>Salve propostas que merecem ser acompanhadas e elas ficarão reunidas aqui neste dispositivo.</p><Link className="primary" href="/explorar">Explorar propostas</Link></div>}

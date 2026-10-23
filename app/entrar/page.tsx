@@ -141,7 +141,7 @@ export default function SignInPage() {
   return <main className="auth-page">
     <Brand />
     <section className="auth-card">
-      <p className="eyebrow">SUA VOZ NO DEBATE</p>
+      <p className="eyebrow">Sua voz no debate</p>
       <h1>{title}</h1>
       {user && mode !== "update-password" ? <>
         <div className="signed-in-profile">

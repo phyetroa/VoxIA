@@ -43,7 +43,7 @@ export default function ReferencesPage() {
 
   return <AppShell>
     <section className="content-page">
-      <p className="eyebrow">LEIS, DIREITOS E FONTES</p>
+      <p className="eyebrow">Leis, direitos e fontes</p>
       <h1 className="page-title">Referências para entender e participar.</h1>
       <p className="page-intro">Consulte os textos originais e materiais de apoio. Uma referência ajuda a contextualizar uma proposta, mas não é aconselhamento jurídico.</p>
       <div className="reference-section-heading"><h2>Normas verificadas</h2><span>Catálogo jurídico</span></div>

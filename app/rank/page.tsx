@@ -43,7 +43,7 @@ export default function RankPage() {
 
   return <AppShell>
     <section className="content-page">
-      <p className="eyebrow">VOZES EM DESTAQUE</p><h1 className="page-title">Rank Voxia</h1><p className="page-intro">As propostas aprovadas com mais apoios da comunidade.</p>
+      <p className="eyebrow">Vozes em destaque</p><h1 className="page-title">Rank Voxia</h1><p className="page-intro">As propostas aprovadas com mais apoios da comunidade.</p>
       {loading && <p className="notice" role="status">Carregando ranking…</p>}
       {!loading && error && <p className="form-error" role="alert">{error}</p>}
       {!loading && !error && ranked.length === 0 && <div className="empty"><h2>O ranking está começando.</h2><p>Quando houver propostas aprovadas, as mais apoiadas aparecerão aqui.</p><Link className="primary" href="/explorar">Explorar propostas</Link></div>}
