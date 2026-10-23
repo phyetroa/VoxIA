@@ -16,6 +16,8 @@ O esquema do Supabase está em `supabase/schema.sql`. Ele cria perfis, categoria
 
 Para atualizar um banco existente, execute uma vez as migrações de `supabase/migrations/` no SQL Editor do Supabase, na ordem dos nomes. Apoios são limitados pelo par proposta/usuário no banco; comentários só podem ser enviados em propostas aprovadas.
 
+A migração `20261023_public_tracking_and_notifications.sql` adiciona edição segura de propostas publicadas, linha do tempo moderada com evidências HTTPS, notificações privadas, desafios cívicos semanais e métricas públicas agregadas. Ela pressupõe que o esquema-base e as migrações anteriores já foram aplicados. A interface dessas funções depende dessa migração; depois de executá-la, recarregue o site.
+
 Referências jurídicas aparecem como verificadas somente após conferência em fonte oficial. As cinco fontes iniciais estão cadastradas para revisão.
 
 ## Autenticação

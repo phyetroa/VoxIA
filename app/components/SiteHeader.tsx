@@ -16,6 +16,10 @@ const navigation = [
   { href: "/referencias", label: "Leis e direitos", icon: "§", mobile: false },
   { href: "/noticias", label: "Notícias", icon: "▣", mobile: false },
   { href: "/minhas-propostas", label: "Minhas propostas", icon: "▤", mobile: false },
+  { href: "/notificacoes", label: "Notificações", icon: "◉", mobile: false },
+  { href: "/desafio", label: "Desafio cívico", icon: "✦", mobile: false },
+  { href: "/transparencia", label: "Transparência", icon: "▥", mobile: false },
+  { href: "/moderacao", label: "Moderação", icon: "✓", mobile: false, moderatorOnly: true },
   { href: "/perfil", label: "Perfil", icon: "◉", mobile: true },
   { href: "/configuracoes", label: "Configurações", icon: "⚙", mobile: false }
 ];
@@ -23,11 +27,18 @@ const navigation = [
 export default function SiteHeader() {
   const pathname = usePathname().replace(/^\/VoxIA/, "") || "/";
   const [user, setUser] = useState<User | null>(null);
+  const [isModerator, setIsModerator] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null));
+    async function syncUser(currentUser: User | null) {
+      setUser(currentUser);
+      if (!currentUser) { setIsModerator(false); return; }
+      const { data } = await supabase.from("profiles").select("role").eq("id", currentUser.id).maybeSingle();
+      setIsModerator(data?.role === "moderator" || data?.role === "admin");
+    }
+    supabase.auth.getUser().then(({ data }) => void syncUser(data.user));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => void syncUser(session?.user ?? null));
     return () => listener.subscription.unsubscribe();
   }, []);
 
@@ -35,7 +46,7 @@ export default function SiteHeader() {
     <aside className="app-sidebar">
       <div className="sidebar-brand"><Brand /></div>
       <nav className="sidebar-nav" aria-label="Navegação principal">
-        {navigation.map((item) => <Link key={item.href} className={pathname === item.href ? "sidebar-item active" : "sidebar-item"} href={item.href} aria-current={pathname === item.href ? "page" : undefined}>
+        {navigation.filter((item) => !item.moderatorOnly || isModerator).map((item) => <Link key={item.href} className={pathname === item.href ? "sidebar-item active" : "sidebar-item"} href={item.href} aria-current={pathname === item.href ? "page" : undefined}>
           <span className="sidebar-icon" aria-hidden="true">{item.icon}</span><span>{item.label}</span>
         </Link>)}
       </nav>

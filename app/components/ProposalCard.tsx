@@ -134,6 +134,20 @@ export default function ProposalCard({ proposal, initialStats }: { proposal: Pro
     }
   }
 
+  async function reportContent(commentId?: number) {
+    if (!userId) { setNotice("Entre na sua conta para denunciar conteúdo."); return; }
+    const reason = window.prompt("Explique por que este conteúdo deve ser revisado (8 a 1.000 caracteres):")?.trim();
+    if (!reason) return;
+    if (reason.length < 8 || reason.length > 1000) { setNotice("A justificativa precisa ter entre 8 e 1.000 caracteres."); return; }
+    setBusy(true); setNotice("");
+    try {
+      const { error } = await createClient().rpc("report_community_content", { p_proposal: proposal.id, p_comment: commentId ?? null, p_reason: reason });
+      if (error) throw error;
+      setNotice("Denúncia enviada para revisão. O conteúdo não foi ocultado automaticamente.");
+    } catch { setNotice("Não foi possível enviar. Você pode já ter denunciado este conteúdo ou a migração do banco ainda não foi aplicada."); }
+    finally { setBusy(false); }
+  }
+
   const category = Array.isArray(proposal.categories) ? proposal.categories[0]?.name : proposal.categories?.name;
   const scopes: Record<string, string> = { municipal: "Municipal", state: "Estadual", federal: "Federal" };
 
@@ -143,10 +157,10 @@ export default function ProposalCard({ proposal, initialStats }: { proposal: Pro
     <p className="proposal-meta">{category ?? "Cidadania"} · {scopes[proposal.government_scope] ?? "Brasil"}{proposal.locality ? ` · ${proposal.locality}` : ""}</p>
     <h3>{proposal.title}</h3><p>{proposal.description}</p><small>{new Date(proposal.created_at).toLocaleDateString("pt-BR")}</small>
     {(proposal.problem || proposal.solution || proposal.expected_benefits) && <details className="proposal-details"><summary>Problema, solução e benefícios</summary><div>{proposal.problem && <section><strong>Problema identificado</strong><p>{proposal.problem}</p></section>}{proposal.solution && <section><strong>Solução sugerida</strong><p>{proposal.solution}</p></section>}{proposal.expected_benefits && <section><strong>Benefícios esperados</strong><p>{proposal.expected_benefits}</p></section>}</div></details>}
-    <div className="proposal-actions"><button className={supported ? "text-action active" : "text-action"} type="button" onClick={toggleSupport} disabled={busy} aria-pressed={supported}>♥ {supportCount} apoios</button><button className="text-action" type="button" onClick={loadComments} disabled={commentsLoading} aria-expanded={showComments}>{commentsLoading ? "Carregando comentários…" : `◷ ${commentCount} comentários`}</button><button className="text-action" type="button" onClick={toggleSaved} aria-pressed={saved}>{saved ? "▣ Salva" : "▢ Salvar"}</button><button className="text-action" type="button" onClick={shareProposal}>↗ Compartilhar</button>{canDelete && <button className="text-action delete-action" type="button" onClick={deleteProposal} disabled={busy}>Apagar</button>}</div>
+    <div className="proposal-actions"><button className={supported ? "text-action active" : "text-action"} type="button" onClick={toggleSupport} disabled={busy} aria-pressed={supported}>♥ {supportCount} apoios</button><button className="text-action" type="button" onClick={loadComments} disabled={commentsLoading} aria-expanded={showComments}>{commentsLoading ? "Carregando comentários…" : `◷ ${commentCount} comentários`}</button><button className="text-action" type="button" onClick={toggleSaved} aria-pressed={saved}>{saved ? "▣ Salva" : "▢ Salvar"}</button><button className="text-action" type="button" onClick={shareProposal}>↗ Compartilhar</button><Link className="text-action" href={`/acompanhamento?id=${proposal.id}`}>Acompanhar</Link>{userId && <button className="text-action" type="button" onClick={() => void reportContent()} disabled={busy}>Denunciar</button>}{canDelete && <button className="text-action delete-action" type="button" onClick={deleteProposal} disabled={busy}>Apagar</button>}</div>
     {showComments && <section className="comments" aria-label="Comentários da proposta">
       {comments.length === 0 && <p className="notice">Ainda não há comentários. Inicie um debate respeitoso.</p>}
-      {comments.map((item) => <div className="comment" key={item.id}><strong>{item.display_name || "Cidadão"}</strong><p>{item.body}</p><small>{new Date(item.created_at).toLocaleDateString("pt-BR")}</small></div>)}
+      {comments.map((item) => <div className="comment" key={item.id}><strong>{item.display_name || "Cidadão"}</strong><p>{item.body}</p><small>{new Date(item.created_at).toLocaleDateString("pt-BR")}</small>{userId && <button className="text-action report-comment" type="button" onClick={() => void reportContent(item.id)} disabled={busy}>Denunciar comentário</button>}</div>)}
       {userId ? <form className="comment-form" onSubmit={sendComment}><label className="sr-only" htmlFor={`comment-${proposal.id}`}>Escreva um comentário</label><input id={`comment-${proposal.id}`} value={comment} onChange={(event) => setComment(event.target.value)} maxLength={1000} required placeholder="Escreva um comentário respeitoso"/><button type="submit" className="primary" disabled={busy || !comment.trim()}>{busy ? "Enviando…" : "Comentar"}</button></form> : <p className="notice"><Link href="/entrar">Entre na Voxia</Link> para comentar.</p>}
     </section>}
     {notice && <p className="notice" role="status">{notice}</p>}

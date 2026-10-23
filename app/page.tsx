@@ -15,6 +15,10 @@ export default function Home() {
       <p>A Voxia reúne propostas, torna visível o apoio dos cidadãos e abre espaço para o debate. A ideia é aproximar essas demandas de representantes e gestores que podem transformá-las em políticas públicas.</p>
       <small>A plataforma é independente. Quem exerce o poder público decide se implementa uma proposta; a sociedade pode acompanhar essa resposta.</small>
     </section>
+    <section className="civic-links" aria-label="Acompanhe a participação">
+      <Link href="/desafio"><span>DESAFIO CÍVICO</span><strong>Uma questão para pensar nesta semana</strong><small>Contribua com uma proposta responsável →</small></Link>
+      <Link href="/transparencia"><span>ACOMPANHE O QUE ACONTECE</span><strong>Veja participação e resultados comprovados</strong><small>Consulte o painel público →</small></Link>
+    </section>
     <ProposalFeed />
     <footer className="app-footer">Voxia é uma plataforma independente. Não representa órgãos públicos. <Link href="/referencias">Fontes e transparência</Link></footer>
   </AppShell>;
