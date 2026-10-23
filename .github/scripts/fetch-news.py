@@ -147,7 +147,7 @@ def read_feed(source):
                 month, day, year, hour, minute = map(int, local_date.groups())
                 date = datetime(year, month, day, hour, minute, tzinfo=timezone(timedelta(hours=-3))).astimezone(timezone.utc).isoformat()
         image = article_image(item, images, source)
-        local_coverage = urlparse(link).path.lower().startswith("/pe/") or "pernambuco" in f"{title} {description}".lower()
+        local_coverage = urlparse(link).path.lower().startswith("/pe/")
         region = "Pernambuco" if source["name"] == "G1" and local_coverage else source["region"]
         publisher = "G1 Pernambuco" if source["name"] == "G1" and local_coverage else source["name"]
         articles.append({

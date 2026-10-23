@@ -57,7 +57,7 @@ export default function NewsPage() {
   return <AppShell showRightPanel={false}><section className="content-page news-page">
     <p className="eyebrow">ACOMPANHE O PAÍS</p>
     <h1 className="page-title">Notícias nacionais</h1>
-    <p className="page-intro">Manchetes e imagens de veículos jornalísticos reconhecidos, incluindo G1 e a cobertura de Pernambuco relacionada ao NE1. A Voxia não produz nem endossa o conteúdo jornalístico.</p>
+    <p className="page-intro">Manchetes e imagens de veículos jornalísticos reconhecidos, incluindo G1/Globo e notícias do G1 Pernambuco, com reportagens do NE1 quando publicadas no portal. A Voxia não produz nem endossa o conteúdo jornalístico.</p>
     <div className="news-feed-heading">
       <div className="news-filters" aria-label="Filtrar notícias por região">
         {["Todas", "Brasil", "Pernambuco"].map((value) => <button type="button" key={value} className={`news-filter${region === value ? " active" : ""}`} aria-pressed={region === value} onClick={() => setRegion(value)}>{value}</button>)}
