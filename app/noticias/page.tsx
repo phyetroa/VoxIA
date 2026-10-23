@@ -33,7 +33,8 @@ export default function NewsPage() {
       const items = Array.from(xml.querySelectorAll("item")).flatMap((item) => {
         const title = item.querySelector("title")?.textContent?.trim() ?? "";
         const rawLink = item.querySelector("link")?.textContent?.trim() ?? "";
-        const summary = plainText(item.querySelector("description")?.textContent ?? "");
+        const fullSummary = plainText(item.querySelector("description")?.textContent ?? "");
+        const summary = fullSummary.length > 360 ? `${fullSummary.slice(0, 357).trimEnd()}…` : fullSummary;
         const publishedAt = item.querySelector("pubDate")?.textContent?.trim() ?? "";
         try {
           const url = new URL(rawLink);
