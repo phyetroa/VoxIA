@@ -1,15 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AppShell from "../components/AppShell";
 
-type NewsItem = { title: string; link: string; summary: string; publishedAt: string };
+type NewsItem = {
+  title: string;
+  link: string;
+  summary: string;
+  publishedAt: string;
+  image: string;
+  source: string;
+  region: string;
+};
 
-const feedUrl = "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml";
-
-function plainText(value: string) {
-  return new DOMParser().parseFromString(value, "text/html").body.textContent?.replace(/\s+/g, " ").trim() ?? "";
-}
+type NewsFeed = {
+  updatedAt: string;
+  articles: NewsItem[];
+  unavailableSources: string[];
+};
 
 function formatDate(value: string) {
   const date = new Date(value);
@@ -21,34 +29,22 @@ export default function NewsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [updatedAt, setUpdatedAt] = useState("");
+  const [unavailableSources, setUnavailableSources] = useState<string[]>([]);
+  const [region, setRegion] = useState("Todas");
 
   const loadNews = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(feedUrl, { cache: "no-store" });
+      const response = await fetch(`/VoxIA/news-feed.json?v=${Date.now()}`, { cache: "no-store" });
       if (!response.ok) throw new Error("feed unavailable");
-      const xml = new DOMParser().parseFromString(await response.text(), "application/xml");
-      if (xml.querySelector("parsererror")) throw new Error("invalid feed");
-      const items = Array.from(xml.querySelectorAll("item")).flatMap((item) => {
-        const title = item.querySelector("title")?.textContent?.trim() ?? "";
-        const rawLink = item.querySelector("link")?.textContent?.trim() ?? "";
-        const fullSummary = plainText(item.querySelector("description")?.textContent ?? "");
-        const summary = fullSummary.length > 360 ? `${fullSummary.slice(0, 357).trimEnd()}…` : fullSummary;
-        const publishedAt = item.querySelector("pubDate")?.textContent?.trim() ?? "";
-        try {
-          const url = new URL(rawLink);
-          if (!title || url.protocol !== "https:" || (url.hostname !== "ebc.com.br" && !url.hostname.endsWith(".ebc.com.br"))) return [];
-          return [{ title, link: url.href, summary, publishedAt }];
-        } catch {
-          return [];
-        }
-      }).slice(0, 15);
-      if (!items.length) throw new Error("no items");
-      setNews(items);
-      setUpdatedAt(new Date().toISOString());
+      const feed = await response.json() as NewsFeed;
+      if (!Array.isArray(feed.articles) || !feed.articles.length) throw new Error("no items");
+      setNews(feed.articles);
+      setUpdatedAt(feed.updatedAt);
+      setUnavailableSources(feed.unavailableSources ?? []);
     } catch {
-      setError("Não foi possível carregar as notícias agora. Verifique sua conexão e tente atualizar.");
+      setError("Não foi possível carregar as notícias agora. Verifique sua conexão e tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -56,20 +52,31 @@ export default function NewsPage() {
 
   useEffect(() => { void loadNews(); }, [loadNews]);
 
+  const visibleNews = useMemo(() => region === "Todas" ? news : news.filter((item) => item.region === region), [news, region]);
+
   return <AppShell showRightPanel={false}><section className="content-page news-page">
     <p className="eyebrow">ACOMPANHE O PAÍS</p>
     <h1 className="page-title">Notícias nacionais</h1>
-    <p className="page-intro">Manchetes e resumos recentes da Agência Brasil, direto nesta página. A Voxia não produz nem endossa o conteúdo jornalístico.</p>
-    <div className="news-feed-heading"><span className="reference-badge">Agência Brasil · EBC</span><button type="button" className="text-action" onClick={() => void loadNews()} disabled={loading}>{loading ? "Atualizando…" : "Atualizar notícias ↻"}</button></div>
+    <p className="page-intro">Manchetes e imagens de veículos jornalísticos reconhecidos, incluindo G1 e a cobertura de Pernambuco relacionada ao NE1. A Voxia não produz nem endossa o conteúdo jornalístico.</p>
+    <div className="news-feed-heading">
+      <div className="news-filters" aria-label="Filtrar notícias por região">
+        {["Todas", "Brasil", "Pernambuco"].map((value) => <button type="button" key={value} className={`news-filter${region === value ? " active" : ""}`} aria-pressed={region === value} onClick={() => setRegion(value)}>{value}</button>)}
+      </div>
+      <button type="button" className="text-action" onClick={() => void loadNews()} disabled={loading}>{loading ? "Atualizando…" : "Atualizar notícias ↻"}</button>
+    </div>
     {loading && <p className="empty" role="status">Carregando as notícias mais recentes…</p>}
     {!loading && error && <div className="empty" role="alert"><h2>Notícias indisponíveis</h2><p>{error}</p><button type="button" className="primary" onClick={() => void loadNews()}>Tentar novamente</button></div>}
-    {!loading && !error && <div className="news-list">{news.map((item, index) => <article className="news-item" key={`${item.link}-${index}`}>
-      <small>{formatDate(item.publishedAt)} · Agência Brasil</small>
-      <h2><a href={item.link} target="_blank" rel="noreferrer">{item.title}</a></h2>
-      {item.summary && <p>{item.summary}</p>}
-      <a className="news-read-more" href={item.link} target="_blank" rel="noreferrer">Ler matéria completa ↗</a>
+    {!loading && !error && visibleNews.length === 0 && <p className="empty" role="status">Ainda não há notícias para este filtro.</p>}
+    {!loading && !error && visibleNews.length > 0 && <div className="news-list">{visibleNews.map((item) => <article className="news-item" key={item.link}>
+      {item.image && <img className="news-cover" src={item.image} alt={`Imagem da matéria: ${item.title}`} loading="lazy" onError={(event) => { event.currentTarget.hidden = true; }} />}
+      <div className="news-content">
+        <small>{formatDate(item.publishedAt)} · {item.source}</small>
+        <h2><a href={item.link} target="_blank" rel="noreferrer">{item.title}</a></h2>
+        {item.summary && <p>{item.summary}</p>}
+        <a className="news-read-more" href={item.link} target="_blank" rel="noreferrer">Ler matéria completa ↗</a>
+      </div>
     </article>)}</div>}
-    {updatedAt && <p className="news-updated">Feed consultado em {formatDate(updatedAt)}. As matérias e seus direitos pertencem à Agência Brasil/EBC.</p>}
-    <p className="legal-disclaimer">As notícias são carregadas de um feed RSS público da Agência Brasil. Para ler a matéria completa, você será direcionado ao site da EBC.</p>
+    {updatedAt && <p className="news-updated">Última atualização do feed: {formatDate(updatedAt)}.{unavailableSources.length > 0 ? ` Fontes temporariamente indisponíveis: ${unavailableSources.join(", ")}.` : ""}</p>}
+    <p className="legal-disclaimer">A Voxia reúne títulos, resumos e imagens publicados nos feeds RSS da Agência Brasil, G1, Folha de S.Paulo, CNN Brasil e UOL. A cobertura local é do G1 Pernambuco, incluindo pautas relacionadas ao NE1. Os créditos, as matérias completas e os direitos sobre as imagens pertencem aos respectivos veículos. O feed é atualizado periodicamente.</p>
   </section></AppShell>;
 }
