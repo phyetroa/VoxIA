@@ -5,7 +5,8 @@ import type { User } from "@supabase/supabase-js";
 
 export default function UserAvatar({ user, size = "normal" }: { user: User; size?: "normal" | "large" }) {
   const [imageFailed, setImageFailed] = useState(false);
-  const photo = user.user_metadata?.picture ?? user.user_metadata?.avatar_url;
+  const googleIdentity = user.identities?.find((identity) => identity.provider === "google")?.identity_data;
+  const photo = googleIdentity?.picture ?? googleIdentity?.avatar_url ?? user.user_metadata?.picture ?? user.user_metadata?.avatar_url;
   const initials = (user.user_metadata?.name ?? user.email ?? "V")
     .split(/[\s@._-]+/)
     .filter(Boolean)
