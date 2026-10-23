@@ -4,7 +4,7 @@ import re
 import gzip
 import urllib.request
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from pathlib import Path
@@ -24,13 +24,7 @@ FEEDS = [
         "url": "https://g1.globo.com/rss/g1/",
         "hosts": ["g1.globo.com", "globo.com"],
         "image_hosts": ["glbimg.com"],
-    },
-    {
-        "name": "G1 Pernambuco · NE1",
-        "region": "Pernambuco",
-        "url": "https://g1.globo.com/dynamo/pernambuco/rss2.xml",
-        "hosts": ["g1.globo.com", "globo.com"],
-        "image_hosts": ["glbimg.com"],
+        "limit": 30,
     },
     {
         "name": "Folha de S.Paulo",
@@ -45,14 +39,6 @@ FEEDS = [
         "url": "https://www.cnnbrasil.com.br/feed/",
         "hosts": ["cnnbrasil.com.br"],
         "image_hosts": ["cnnbrasil.com.br"],
-    },
-    {
-        "name": "UOL Notícias",
-        "region": "Brasil",
-        "url": "https://rss.uol.com.br/feed/noticias.xml",
-        "hosts": ["uol.com.br"],
-        "image_hosts": ["uol.com.br"],
-        "encoding": "iso-8859-1",
     },
 ]
 
@@ -100,13 +86,13 @@ def safe_url(value, allowed_hosts):
         return ""
 
 
-def article_image(item, description, source):
+def article_image(item, description_images, source):
     image_urls = []
     for element in item.iter():
         local_name = element.tag.split("}")[-1].lower()
         if local_name in {"content", "thumbnail", "enclosure"}:
             image_urls.append(element.attrib.get("url", ""))
-    image_urls.extend(description.images)
+    image_urls.extend(description_images)
     for value in image_urls:
         image = safe_url(value, source.get("image_hosts", source["hosts"]))
         if image:
@@ -155,17 +141,25 @@ def read_feed(source):
         if not description:
             description = title
         date = publication_date(field(item, "pubdate", "published", "updated", "date"))
-        image = article_image(item, type("Description", (), {"images": images})(), source)
+        if not date:
+            local_date = re.search(r"\((\d{1,2})/(\d{1,2})/(\d{4}) - (\d{1,2})h(\d{2})\)", description)
+            if local_date:
+                month, day, year, hour, minute = map(int, local_date.groups())
+                date = datetime(year, month, day, hour, minute, tzinfo=timezone(timedelta(hours=-3))).astimezone(timezone.utc).isoformat()
+        image = article_image(item, images, source)
+        local_coverage = urlparse(link).path.lower().startswith("/pe/") or "pernambuco" in f"{title} {description}".lower()
+        region = "Pernambuco" if source["name"] == "G1" and local_coverage else source["region"]
+        publisher = "G1 Pernambuco" if source["name"] == "G1" and local_coverage else source["name"]
         articles.append({
             "title": title,
             "link": link,
             "summary": description[:357].rstrip() + ("…" if len(description) > 360 else ""),
             "publishedAt": date,
             "image": image,
-            "source": source["name"],
-            "region": source["region"],
+            "source": publisher,
+            "region": region,
         })
-        if len(articles) == 12:
+        if len(articles) == source.get("limit", 12):
             break
     return articles
 

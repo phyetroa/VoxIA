@@ -77,6 +77,6 @@ export default function NewsPage() {
       </div>
     </article>)}</div>}
     {updatedAt && <p className="news-updated">Última atualização do feed: {formatDate(updatedAt)}.{unavailableSources.length > 0 ? ` Fontes temporariamente indisponíveis: ${unavailableSources.join(", ")}.` : ""}</p>}
-    <p className="legal-disclaimer">A Voxia reúne títulos, resumos e imagens publicados nos feeds RSS da Agência Brasil, G1, Folha de S.Paulo, CNN Brasil e UOL. A cobertura local é do G1 Pernambuco, incluindo pautas relacionadas ao NE1. Os créditos, as matérias completas e os direitos sobre as imagens pertencem aos respectivos veículos. O feed é atualizado periodicamente.</p>
+    <p className="legal-disclaimer">A Voxia reúne títulos, resumos e imagens publicados nos feeds RSS da Agência Brasil, G1, Folha de S.Paulo e CNN Brasil. A cobertura local inclui notícias recentes do G1 Pernambuco e reportagens do NE1 quando publicadas pelo portal. Os créditos, as matérias completas e os direitos sobre as imagens pertencem aos respectivos veículos. O feed é atualizado periodicamente.</p>
   </section></AppShell>;
 }
