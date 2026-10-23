@@ -6,7 +6,7 @@ import { createClient } from "../../lib/supabase/client";
 import { getSavedProposalIds } from "../../lib/community-preferences";
 import ProposalCard from "./ProposalCard";
 
-type Proposal = { id: string; title: string; description: string; government_scope: string; locality: string | null; created_at: string; categories: { name: string }[] | { name: string } | null };
+type Proposal = { id: string; title: string; description: string; problem: string; solution: string; expected_benefits: string | null; government_scope: string; locality: string | null; created_at: string; categories: { name: string }[] | { name: string } | null };
 type Stats = { proposal_id: string; support_count: number; comment_count: number; is_author: boolean };
 
 export default function SavedProposals() {
@@ -23,7 +23,7 @@ export default function SavedProposals() {
     try {
       const supabase = createClient();
       const [proposalResult, statsResult] = await Promise.all([
-        supabase.from("proposals").select("id,title,description,government_scope,locality,created_at,categories(name)").eq("status", "approved").in("id", ids),
+        supabase.from("proposals").select("id,title,description,problem,solution,expected_benefits,government_scope,locality,created_at,categories(name)").eq("status", "approved").in("id", ids),
         supabase.rpc("get_proposal_stats")
       ]);
       if (proposalResult.error) throw proposalResult.error;

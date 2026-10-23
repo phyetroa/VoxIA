@@ -56,6 +56,15 @@ body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:0}
 .empty{padding:24px;background:var(--white)}
 .empty h3,.empty h2{font-size:17px;font-weight:740}
 .explore-filters input,.explore-filters select,.profile-form input{border-radius:7px}
+.explore-filters{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:6px}
+.filter-guidance{margin:0 0 13px;color:var(--muted);font-size:11px;line-height:1.5}
+.proposal-details{margin-top:13px;border-top:1px solid var(--line);color:var(--ink)}
+.proposal-details summary{padding:11px 0 2px;color:var(--blue);font-size:12px;font-weight:750;cursor:pointer}
+.proposal-details>div{display:grid;gap:9px;padding:10px 0 2px}
+.proposal-details section strong{font-size:11px}
+.proposal-details section p{margin:3px 0 0;color:var(--muted);font-size:12px;line-height:1.6;white-space:pre-wrap}
+.load-more-button{display:block;width:100%;min-height:42px;margin:14px 0 0;border:1px solid var(--line);border-radius:7px;background:var(--white);color:var(--blue);font:inherit;font-size:12px;font-weight:750;cursor:pointer}
+.load-more-button:hover{background:var(--soft)}
 .news-filter{border-radius:5px}
 .reference-badge,.status-pill{border-radius:4px}
 .user-avatar{border:0;border-radius:50%;background:var(--blue)}
@@ -66,6 +75,7 @@ body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:0}
   .mission-card{margin-bottom:25px;padding-left:12px}
   .composer-prompt{align-items:flex-start}
   .composer-button{align-self:center;font-size:10px}
+  .explore-filters #locality-filter{grid-column:1/-1}
   .proposal-card{padding:14px}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
