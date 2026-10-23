@@ -1,0 +1,71 @@
+:root[data-theme="normal"]{--ink:#172b43;--muted:#56677a;--paper:#f2f5f7;--line:#d9e1e7;--blue:#0755a3;--green:#13785f;--white:#fff;--soft:#e7eff6;--violet:#0755a3;--pink:#13785f;--card-shadow:none}
+:root[data-theme="dark"]{--ink:#e6edf4;--muted:#aab7c4;--paper:#111922;--line:#303d49;--blue:#83b8ed;--green:#7fc7a7;--white:#19232d;--soft:#253341;--violet:#83b8ed;--pink:#7fc7a7;--card-shadow:none}
+:root[data-theme="classic"]{--ink:#3b352b;--muted:#706759;--paper:#f1eee7;--line:#ded7c9;--blue:#665235;--green:#65714d;--white:#fbf9f3;--soft:#e9e4d9;--violet:#665235;--pink:#65714d;--card-shadow:none}
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:0}
+::selection{background:color-mix(in srgb,var(--blue) 20%,transparent)}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--blue) 45%,transparent);outline-offset:3px}
+.brand{gap:8px}.sidebar-brand .brand-symbol{width:40px;height:40px}.sidebar-brand .brand-wordmark{width:96px;height:35px}
+.app-sidebar{padding:22px 16px 16px;background:var(--white);box-shadow:none}
+.sidebar-brand{padding:0 10px 24px}
+.sidebar-nav{gap:3px}
+.sidebar-item{min-height:44px;border-radius:6px;padding:8px 11px;transition:background-color .16s ease,color .16s ease}
+.sidebar-item:hover{background:var(--paper);color:var(--blue)}
+.sidebar-item.active{background:var(--soft);box-shadow:inset 3px 0 var(--blue)}
+.sidebar-icon{font-size:20px}
+.sidebar-create{min-height:44px;border-radius:7px;background:var(--blue);transition:background-color .16s ease}
+.sidebar-create:hover,.primary:hover,.composer-button:hover{filter:brightness(.92)}
+.app-columns{padding-top:32px}
+.app-right-panel{padding-top:4px}
+.side-card{border-radius:8px;background:var(--white);box-shadow:none}
+.side-kicker,.eyebrow{font-size:11px;letter-spacing:.07em;text-transform:lowercase}
+.side-kicker{font-weight:800}
+.topic-list a{border-radius:4px}
+.home-intro{padding:8px 0 23px}
+.home-intro .eyebrow{color:var(--green)}
+.home-intro h1{max-width:620px;font-family:inherit;font-size:clamp(31px,3.6vw,43px);font-weight:760;letter-spacing:-1.5px;line-height:1.13}
+.home-intro>p:not(.eyebrow){max-width:540px;font-size:15px}
+.intro-create-link{padding-bottom:2px;border-bottom:1px solid color-mix(in srgb,var(--blue) 45%,transparent)}
+.mission-card{display:block;margin:0 0 34px;padding:2px 0 2px 16px;border:0;border-left:2px solid var(--green);border-radius:0;background:transparent;box-shadow:none}
+.mission-card .eyebrow{margin:0 0 5px;color:var(--green)}
+.mission-card h2{font-size:16px;font-weight:750;letter-spacing:-.3px}
+.mission-card p:not(.eyebrow){max-width:620px;font-size:13px}
+.mission-card small{display:block;max-width:620px}
+.feed-title-row{margin-bottom:13px}
+.feed-title-row h2{font-size:22px;font-weight:750;letter-spacing:-.55px}
+.quiet-link{font-size:12px}
+.composer-prompt{gap:12px;margin-bottom:16px;padding:12px 13px;border-style:dashed;border-radius:8px;box-shadow:none}
+.composer-plus{width:34px;height:34px;border-radius:6px;background:var(--soft);font-size:21px}
+.composer-prompt strong{font-size:12px}.composer-prompt small{font-size:11px}
+.composer-button{border-radius:6px;background:var(--blue);padding:8px 10px}
+.interest-panel{gap:9px;margin-bottom:16px;padding:12px;border-radius:8px;background:transparent;box-shadow:none}
+.interest-chip{border-radius:5px;background:var(--white)}
+.feed-tabs{gap:19px;margin-bottom:13px}
+.feed-tabs button{font-size:12px}
+.proposal-list{gap:11px}
+.proposal-card,.empty,.reference-card,.news-item,.my-proposal-card,.profile-summary,.proposal-form-panel{border-radius:8px;box-shadow:none}
+.proposal-card{padding:18px 19px}
+.proposal-card h3{font-size:17px;font-weight:740;letter-spacing:-.25px}
+.proposal-meta{font-size:10px;letter-spacing:.025em}
+.proposal-card>p:not(.proposal-meta){font-size:13px}
+.proposal-actions{gap:15px;padding-top:12px;margin-top:14px}
+.text-action{font-size:12px;transition:color .15s ease}
+.text-action:hover{color:var(--blue)}
+.interest-chip,.sidebar-item,.sidebar-create,.primary,.secondary,.news-filter{transition:background-color .16s ease,border-color .16s ease,color .16s ease}
+.primary,.login{border-radius:7px;background:var(--blue);box-shadow:none}
+.secondary{border-radius:7px}
+.empty{padding:24px;background:var(--white)}
+.empty h3,.empty h2{font-size:17px;font-weight:740}
+.explore-filters input,.explore-filters select,.profile-form input{border-radius:7px}
+.news-filter{border-radius:5px}
+.reference-badge,.status-pill{border-radius:4px}
+.user-avatar{border:0;border-radius:50%;background:var(--blue)}
+.mobile-bottom-nav{box-shadow:none}
+@media(max-width:600px){
+  .app-columns{padding-top:17px}
+  .home-intro h1{max-width:520px;font-size:31px;line-height:1.14}
+  .mission-card{margin-bottom:25px;padding-left:12px}
+  .composer-prompt{align-items:flex-start}
+  .composer-button{align-self:center;font-size:10px}
+  .proposal-card{padding:14px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}

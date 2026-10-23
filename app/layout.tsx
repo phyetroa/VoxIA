@@ -3,6 +3,7 @@ import "./globals.css";
 import "./forms.css";
 import "./interactions.css";
 import "./social.css";
+import "./identity.css";
 import { ThemeProvider } from "./components/ThemeProvider";
 
 export const metadata: Metadata = {
