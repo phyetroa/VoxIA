@@ -12,6 +12,7 @@ const navigation = [
   { href: "/", label: "Início", icon: "⌂", mobile: true },
   { href: "/explorar", label: "Explorar", icon: "⌕", mobile: true },
   { href: "/rank", label: "Rank", icon: "↗", mobile: true },
+  { href: "/salvos", label: "Salvos", icon: "▢", mobile: true },
   { href: "/referencias", label: "Leis e direitos", icon: "§", mobile: false },
   { href: "/noticias", label: "Notícias", icon: "▣", mobile: false },
   { href: "/minhas-propostas", label: "Minhas propostas", icon: "▤", mobile: false },

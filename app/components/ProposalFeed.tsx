@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "../../lib/supabase/client";
 import ProposalCard from "./ProposalCard";
+import { getFollowedTopics, setFollowedTopics } from "../../lib/community-preferences";
 
 type Proposal = {
   id: string;
@@ -32,6 +33,20 @@ export default function ProposalFeed({ mode = "home" }: { mode?: "home" | "explo
   const [category, setCategory] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [followedTopics, setTopics] = useState<string[]>([]);
+
+  useEffect(() => {
+    const syncTopics = () => setTopics(getFollowedTopics());
+    syncTopics();
+    window.addEventListener("voxia:topics-changed", syncTopics);
+    return () => window.removeEventListener("voxia:topics-changed", syncTopics);
+  }, []);
+
+  function toggleTopic(topic: string) {
+    const next = followedTopics.includes(topic) ? followedTopics.filter((item) => item !== topic) : [...followedTopics, topic];
+    setFollowedTopics(next);
+    setTopics(next);
+  }
 
   useEffect(() => {
     let active = true;
@@ -73,13 +88,18 @@ export default function ProposalFeed({ mode = "home" }: { mode?: "home" | "explo
         && (!scope || proposal.government_scope === scope)
         && (!category || categoryName(proposal) === category);
     }).sort((first, second) => {
+      if (tab === "for-you" && followedTopics.length) {
+        const firstMatch = followedTopics.includes(categoryName(first) ?? "") ? 1 : 0;
+        const secondMatch = followedTopics.includes(categoryName(second) ?? "") ? 1 : 0;
+        if (firstMatch !== secondMatch) return secondMatch - firstMatch;
+      }
       if (tab === "popular" || tab === "for-you") {
         const supportDifference = Number(stats[second.id]?.support_count ?? 0) - Number(stats[first.id]?.support_count ?? 0);
         if (supportDifference) return supportDifference;
       }
       return new Date(second.created_at).getTime() - new Date(first.created_at).getTime();
     });
-  }, [proposals, stats, search, scope, category, tab]);
+  }, [proposals, stats, search, scope, category, tab, followedTopics]);
 
   return <section className="feed-section" aria-label={mode === "home" ? "Feed de propostas" : "Explorar propostas"}>
     {mode === "home" ? <>
@@ -89,6 +109,7 @@ export default function ProposalFeed({ mode = "home" }: { mode?: "home" | "explo
       <p className="eyebrow">VOZES E SOLUÇÕES</p><h1 className="page-title">Explorar</h1><p className="page-intro">Pesquise ideias por tema, localidade e esfera de governo.</p>
       <div className="explore-filters"><label className="sr-only" htmlFor="proposal-search">Buscar propostas</label><input id="proposal-search" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar propostas, temas ou localidades"/><label className="sr-only" htmlFor="scope-filter">Filtrar por esfera</label><select id="scope-filter" value={scope} onChange={(event) => setScope(event.target.value)}><option value="">Todas as esferas</option><option value="municipal">Municipal</option><option value="state">Estadual</option><option value="federal">Federal</option></select><label className="sr-only" htmlFor="category-filter">Filtrar por tema</label><select id="category-filter" value={category} onChange={(event) => setCategory(event.target.value)}><option value="">Todos os temas</option>{categories.map((name) => <option key={name} value={name}>{name}</option>)}</select></div>
     </>}
+    {categories.length > 0 && <section className="interest-panel" aria-label="Temas acompanhados"><div><strong>Seus temas</strong><small>{followedTopics.length ? "No Para você, esses assuntos ganham destaque." : "Escolha assuntos para personalizar o Para você."}</small></div><div className="interest-chips">{categories.slice(0, 10).map((topic) => <button key={topic} type="button" className={followedTopics.includes(topic) ? "interest-chip active" : "interest-chip"} aria-pressed={followedTopics.includes(topic)} onClick={() => toggleTopic(topic)}>{followedTopics.includes(topic) ? "✓ " : "+ "}{topic}</button>)}</div></section>}
     <div className="feed-tabs" role="tablist" aria-label="Ordenar propostas">
       {([{ id: "for-you", label: "Para você" }, { id: "popular", label: "Populares" }, { id: "recent", label: "Recentes" }] as { id: FeedTab; label: string }[]).map((item) => <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} className={tab === item.id ? "active" : ""} onClick={() => setTab(item.id)}>{item.label}</button>)}
     </div>

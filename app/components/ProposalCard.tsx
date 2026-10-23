@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "../../lib/supabase/client";
+import { getSavedProposalIds, setProposalSaved } from "../../lib/community-preferences";
 
 type Comment = { id: number; body: string; created_at: string; display_name: string };
 type Stats = { proposal_id: string; support_count: number; comment_count: number; is_author?: boolean };
@@ -19,8 +20,16 @@ export default function ProposalCard({ proposal, initialStats }: { proposal: { i
   const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => setCanDelete(Boolean(initialStats?.is_author)), [initialStats?.is_author]);
+
+  useEffect(() => {
+    const syncSaved = () => setSaved(getSavedProposalIds().includes(proposal.id));
+    syncSaved();
+    window.addEventListener("voxia:saved-changed", syncSaved);
+    return () => window.removeEventListener("voxia:saved-changed", syncSaved);
+  }, [proposal.id]);
 
   useEffect(() => {
     let active = true;
@@ -82,6 +91,13 @@ export default function ProposalCard({ proposal, initialStats }: { proposal: { i
     } catch { setNotice("Não foi possível compartilhar o link."); }
   }
 
+  function toggleSaved() {
+    const nextSaved = !saved;
+    setProposalSaved(proposal.id, nextSaved);
+    setSaved(nextSaved);
+    setNotice(nextSaved ? "Proposta salva para consultar depois." : "Proposta removida dos salvos.");
+  }
+
   async function deleteProposal() {
     if (!window.confirm("Apagar esta proposta? Os apoios e comentários também serão removidos.")) return;
     setBusy(true); setNotice("");
@@ -99,7 +115,7 @@ export default function ProposalCard({ proposal, initialStats }: { proposal: { i
   return <article id={`proposta-${proposal.id}`} className="proposal-card">
     <p className="proposal-meta">{category ?? "Cidadania"} · {scopes[proposal.government_scope] ?? "Brasil"}{proposal.locality ? ` · ${proposal.locality}` : ""}</p>
     <h3>{proposal.title}</h3><p>{proposal.description}</p><small>{new Date(proposal.created_at).toLocaleDateString("pt-BR")}</small>
-    <div className="proposal-actions"><button className={supported ? "text-action active" : "text-action"} type="button" onClick={toggleSupport} disabled={busy} aria-pressed={supported}>♥ {supportCount} apoios</button><button className="text-action" type="button" onClick={loadComments}>◷ {commentCount} comentários</button><button className="text-action" type="button" onClick={shareProposal}>↗ Compartilhar</button>{canDelete && <button className="text-action delete-action" type="button" onClick={deleteProposal} disabled={busy}>Apagar</button>}</div>
+    <div className="proposal-actions"><button className={supported ? "text-action active" : "text-action"} type="button" onClick={toggleSupport} disabled={busy} aria-pressed={supported}>♥ {supportCount} apoios</button><button className="text-action" type="button" onClick={loadComments}>◷ {commentCount} comentários</button><button className="text-action" type="button" onClick={toggleSaved} aria-pressed={saved}>{saved ? "▣ Salva" : "▢ Salvar"}</button><button className="text-action" type="button" onClick={shareProposal}>↗ Compartilhar</button>{canDelete && <button className="text-action delete-action" type="button" onClick={deleteProposal} disabled={busy}>Apagar</button>}</div>
     {showComments && <section className="comments" aria-label="Comentários da proposta">
       {comments.length === 0 && <p className="notice">Ainda não há comentários. Inicie um debate respeitoso.</p>}
       {comments.map((item) => <div className="comment" key={item.id}><strong>{item.display_name || "Cidadão"}</strong><p>{item.body}</p><small>{new Date(item.created_at).toLocaleDateString("pt-BR")}</small></div>)}
